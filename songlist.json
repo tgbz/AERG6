@@ -1,0 +1,35 @@
+{
+    "songs":
+    {
+        "1":
+        {
+            "title": "Another Brick In The Wall",
+            "artist": "Pink Floyd",
+            "filePath": "songs/Pink Floyd - Another Brick In The Wall.mp3"
+        },
+        "2":
+        {
+            "title": "Don't Start Now",
+            "artist": "Dua Lipa",
+            "filePath": "songs/Dua Lipa-Don't Start Now.mp3"
+        },
+        "3":
+        {
+            "title": "Sex Machine",
+            "artist": "James Brown",
+            "filePath": "songs/James Brown-Sex Machine.mp3"
+        },
+        "4":
+        {
+            "title": "Uptown Funk",
+            "artist": "Bruno Mars",
+            "filePath": "songs/Bruno Mars-Uptown Funk.mp3"
+        },
+        "5":
+        {
+            "title": "Thriller",
+            "artist": "Michael Jackson",
+            "filePath": "songs/Michael Jackson-Thriller.mp3"
+        }
+    }
+}
