@@ -1,0 +1,4 @@
+- Convert mp3 to Wave snippets
+- dump de escolhas aletórias para jogo
+- acks do lado do clientes
+- stream vs transfer?
