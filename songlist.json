@@ -5,43 +5,31 @@
         {
             "title": "Another Brick In The Wall",
             "artist": "Pink Floyd",
-            "filePath": "songs/Pink Floyd - Another Brick In The Wall.mp3"
+            "filePath": "songs/Pink Floyd - Another Brick In The Wall.wav"
         },
         "2":
         {
             "title": "Don't Start Now",
             "artist": "Dua Lipa",
-            "filePath": "songs/Dua Lipa-Don't Start Now.mp3"
+            "filePath": "songs/Dua Lipa-Don't Start Now.wav"
         },
         "3":
         {
             "title": "Sex Machine",
             "artist": "James Brown",
-            "filePath": "songs/James Brown-Sex Machine.mp3"
+            "filePath": "songs/James Brown-Sex Machine.wav"
         },
         "4":
         {
             "title": "Uptown Funk",
             "artist": "Bruno Mars",
-            "filePath": "songs/Bruno Mars-Uptown Funk.mp3"
+            "filePath": "songs/Bruno Mars-Uptown Funk.wav"
         },
         "5":
         {
             "title": "Thriller",
             "artist": "Michael Jackson",
-            "filePath": "songs/Michael Jackson-Thriller.mp3"
-        },
-        "6":
-        {
-            "title": "The Way You Make Me Feel",
-            "artist": "Drake",
-            "filePath": "songs/Drake-The Way You Make Me Feel.mp3"
-        },
-        "7":
-        {
-            "title": "I'm Yours",
-            "artist": "Jason Mraz",
-            "filePath": "songs/Jason Mraz-I'm Yours.mp3"
+            "filePath": "songs/Michael Jackson-Thriller.wav"
         }
     }
 }
