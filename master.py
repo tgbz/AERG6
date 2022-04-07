@@ -53,6 +53,7 @@ class controlHandler(threading.Thread):
         self.mcastAddr = 'FF02::1'
         while True:
             data, addr = self.socket.recvfrom(self.buffer)
+            data = data.decode()
             
             if data.split('-')[0] == 'hello':
                 #verificar se o addr esta presente no dicionario
