@@ -33,6 +33,7 @@ class gameLogin(threading.Thread):
         self.hostName = socket.gethostname()
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.buffer = 2048
+        self.mCastAddr = "FF02::1"
 
     #Add client based on hostname as key to clients dictionary, if it doesn't exist
     def addClient(self, hostname, addr, port):
@@ -69,7 +70,7 @@ class gameLogin(threading.Thread):
                 hostname = data.split('-')[1]
                 if hostname not in clients.keys():
                     self.addClient(hostname, addr[0], addr[1])
-                    self.socket.sendto(b'hello-ack-' + hostname.encode(), addr)
+                    self.socket.sendto(b'hello-ack-' + self.mCastAddr, addr)
                 else:
                     self.socket.sendto(b'you are already in the group' + hostname.encode(), addr)
             elif data.split('-')[0] == 'ready':
@@ -77,7 +78,7 @@ class gameLogin(threading.Thread):
                 if hostname in clients.keys():
                     if clients[hostname]['ready'] == 0:
                         clients[hostname]['ready'] = 1
-                        self.socket.sendto(b'ack-' + hostname.encode(), addr)
+                        self.socket.sendto(b'ready-ack' + hostname.encode(), addr)
                     else:
                         self.socket.sendto(b'You are already ready' + hostname.encode(), addr)
                 else:
@@ -118,20 +119,20 @@ class gameHandler(threading.Thread):
         #call sender class with ip,port,filepath,socket, where ip is the multicastaddr
         Sender(self.ip, self.port, fileToSend, self.mCastSocket)         
         while controlCounter < self.currentGameNumberOfPlayers:
-            data, addr = self.mCastSocket.recvfrom(self.buffer)
+            data, addr = self.controlSocket.recvfrom(self.buffer)
             if data.decode() == "song-ok":
                 controlCounter += 1
         print("Song sent to all players")
         controlCounter = 0
         self.mCastSocket.sendto(pickle.dumps(choices) (self.ip, self.port))
         while controlCounter < self.currentGameNumberOfPlayers:
-            data, addr = self.mCastSocket.recvfrom(self.buffer)
+            data, addr = self.controlSocket.recvfrom(self.buffer)
             if data.decode() == "choices-ok":
                 controlCounter += 1
         controlCounter = 0
         self.mCastSocket.sendto(b'game-start', (self.ip, self.port))
         while controlCounter < self.currentGameNumberOfPlayers:
-            data, addr = self.mCastSocket.recvfrom(self.buffer)
+            data, addr = self.controlSocket.recvfrom(self.buffer)
             if data.decode() == "game-start-ok":
                 controlCounter += 1
         results = dict()

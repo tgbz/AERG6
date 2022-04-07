@@ -1,27 +1,55 @@
-from re import M
-import time, struct, socket, sys, threading, Receiver, player
+import time, struct, socket, sys, threading, Receiver, player, pickle
 
 mCastAddr = ""
   
   
 class GameHandler(threading.Thread):
-    def __init__(self,m):
+    def __init__(self,m,socket,serverAddr, serverPort):
         self.mCastAddr = m
+        self.serverAddr = serverAddr
+        self.serverPort = serverPort
         self.gameState = 0
         self.timeToAnswer = 0
         self.mainSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
         self.mainPort = 30000
         self.buffer = 2048
+        self.controlSocket = socket
+        self.timeToAnswer = 0
+        self.choices = []
+        
+    #function that receives the array of choices and displays a menu with the choices, for the user to choose
+    def round(self):
+        counter = 1
+        for entry in self.choices:
+            print(str(counter) + " - " + entry)
+            counter += 1
+        timeStart = time.time()
+        option = input("Choose a song: ")
+        timeEnd = time.time()
+        finalTime = timeEnd - timeStart
+        selected = self.choices[int(option)-1]
+        return str(selected) + "-" + str(finalTime)
+        
     def run(self):
         self.mainSocket.bind(('', self.mainPort))
         rec = Receiver(mCastAddr,self.mainPort,self.mainSocket,self.buffer).start()
         res = rec.worker()
         if res == 1:
-            self.mainSocket
-  
-  
-  
-def messageHandler(self,s, buffer):
+            self.controlSocket.sendto(b'song-ok' + self.mCastAddr, rec.addr)
+            while True:
+                data, addr = self.controlSocket.recvfrom(self.buffer)
+                self.choices = pickle.loads(data)
+                if data.split('-')[0] == 'choices':
+                    self.controlSocket.sendto(b'choices-ok' + self.mCastAddr, addr)
+                elif data.split('-')[0] == 'game-start':
+                    self.controlSocket.sendto(b'game-start-ok' + self.mCastAddr, addr)
+                    break
+        else:
+            self.controlSocket.sendto(b'song-not-ok' + self.mCastAddr, rec.addr)
+        round()
+        
+
+def messageHandler(s, buffer):
     global mCastAddr
     while True:
         data, addr = s.recvfrom(buffer)

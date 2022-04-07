@@ -30,6 +30,18 @@
             "title": "Thriller",
             "artist": "Michael Jackson",
             "filePath": "songs/Michael Jackson-Thriller.mp3"
+        },
+        "6":
+        {
+            "title": "The Way You Make Me Feel",
+            "artist": "Drake",
+            "filePath": "songs/Drake-The Way You Make Me Feel.mp3"
+        },
+        "7":
+        {
+            "title": "I'm Yours",
+            "artist": "Jason Mraz",
+            "filePath": "songs/Jason Mraz-I'm Yours.mp3"
         }
     }
 }
