@@ -66,6 +66,7 @@ class controlHandler(threading.Thread):
             
             elif data.split('-')[0] == "ready":
                 #verificar se o addr esta presente no dicionario
+                addr = addr[0]
                 if addr in clients.keys():
                     if clients[addr]["ready"] == 0:
                         clients[addr]["ready"] = 1
