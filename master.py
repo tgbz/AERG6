@@ -50,51 +50,51 @@ class controlHandler(threading.Thread):
         print("In Control Handler\n")
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind(('', self.port))
-        self.mcastAddr = 'FF02::1'
+        self.mcastAddr = "FF02::1"
         while True:
             data, addr = self.socket.recvfrom(self.buffer)
             data = data.decode()
             
-            if data.split('-')[0] == 'hello':
+            if data.split('-')[0] == "hello":
                 #verificar se o addr esta presente no dicionario
                 if addr not in clients.keys():
                     self.addClient(addr[0], addr[1])
-                    self.socket.sendto(b'hello-ack-' +'-'+ str(self.mcastAddr), addr)
+                    self.socket.sendto(bytes("hello-ack-" +"-"+ str(self.mcastAddr), addr)
                 else:
-                    self.socket.sendto(b'Cliente ja existente' + addr.encode(), addr)
+                    self.socket.sendto(bytes("Cliente ja existente" + addr.encode(), addr)
             
-            elif data.split('-')[0] == 'ready':
+            elif data.split('-')[0] == "ready":
                 #verificar se o addr esta presente no dicionario
                 if addr in clients.keys():
-                    if clients[addr]['ready'] == 0:
-                        clients[addr]['ready'] = 1
-                        self.socket.sendto(b'ready-ack' + addr.encode(), addr)
+                    if clients[addr]["ready"] == 0:
+                        clients[addr]["ready"] = 1
+                        self.socket.sendto(bytes("ready-ack" + addr.encode(), addr)
                         totalReadyPlayers += 1
                     else:
-                        self.socket.sendto(b'Cliente ja esta pronto' + addr.encode(), addr)
+                        self.socket.sendto(bytes("Cliente ja esta pronto" + addr.encode(), addr)
                 else:
-                    self.socket.sendto(b'Cliente nao encontrado' + addr.encode(), addr)
-            elif data.split('-')[0] == 'control':
+                    self.socket.sendto(bytes("Cliente nao encontrado" + addr.encode(), addr)
+            elif data.split('-')[0] == "control":
                 #verificar se o addr esta presente no dicionario, dar update ao atributo online para 1
                 if addr in clients.keys():
-                    clients[addr]['online'] = 1
-                    self.socket.sendto(b'control-ack' + addr.encode(), addr)
+                    clients[addr]["online"] = 1
+                    self.socket.sendto(bytes("control-ack" + addr.encode(), addr)
                 else:
-                    self.socket.sendto(b'Cliente nao encontrado' + addr.encode(), addr)
-            elif data.split('-')[0] == 'disconnect':
+                    self.socket.sendto(bytes("Cliente nao encontrado" + addr.encode(), addr)
+            elif data.split('-')[0] == "disconnect":
                 #verificar se o addr esta presente no dicionario, dar update ao atributo online para 0
                 if addr in clients.keys():
                     clients[addr]['online'] = 0
-                    self.socket.sendto(b'disconnect-ack' + addr.encode(), addr)
+                    self.socket.sendto(bytes("disconnect-ack" + addr.encode(), addr)
                 else:
-                    self.socket.sendto(b'Cliente nao encontrado' + addr.encode(), addr)
-            elif data.split('-')[0] == 'ingame':
+                    self.socket.sendto(bytes("Cliente nao encontrado") + addr.encode(), addr)
+            elif data.split('-')[0] == "ingame":
                 #verificar se o addr esta presente no dicionario, dar update ao atributo online para 1
                 if addr in clients.keys():
-                    clients[addr]['ingame'] = 1
-                    self.socket.sendto(b'ingame-ack' + addr.encode(), addr)
+                    clients[addr]["ingame"] = 1
+                    self.socket.sendto(bytes("ingame-ack" + addr.encode(), addr)
                 else:
-                    self.socket.sendto(b'Cliente nao encontrado' + addr.encode(), addr)
+                    self.socket.sendto(bytes("Cliente nao encontrado" + addr.encode(), addr)
 
 
 
@@ -149,7 +149,7 @@ class gameHandler(threading.Thread):
                 print("Hipóteses de escolha enviadas para todos os players")
         controlCounter = 0
         
-        self.mCastSocket.sendto(b'game-start', (self.mcastAddr, self.mcastPort))
+        self.mCastSocket.sendto(bytes("game-start", (self.mcastAddr, self.mcastPort))
         while controlCounter < self.currentGameNumberOfPlayers:
             data, addr = self.controlSocket.recvfrom(self.buffer)
             if data.decode() == "game-start-ok":
@@ -163,13 +163,13 @@ class gameHandler(threading.Thread):
                 results[addr]["tempo"] = data.split('-')[2]
                 controlCounter += 1
                 print("Escolha recebida")
-                self.controlSocket.sendto(b'choice-ok', addr)
+                self.controlSocket.sendto(bytes("choice-ok", addr)
         print("Resultados Todos Recebidos:")
         print(results)
 
         winner = self.getWinner(results, selectedSongName)
         print("O vencedor foi: " + winner)
-        self.mCastSocket.sendto(b'winner-' + winner[0].encode() + "-" + winner[1].encode(), (self.mcastAddr, self.mcastPort))
+        self.mCastSocket.sendto(bytes("winner-" + winner[0].encode() + "-" + winner[1].encode(), (self.mcastAddr, self.mcastPort))
         print("jogo terminado")
         self.gameState = 0
         self.currentGameNumberOfPlayers = 0
