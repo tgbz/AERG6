@@ -59,9 +59,9 @@ class controlHandler(threading.Thread):
                 #verificar se o addr esta presente no dicionario
                 if addr not in clients.keys():
                     self.addClient(addr[0], addr[1])
-                    self.socket.sendto(bytes("hello-ack-" +"-"+ str(self.mcastAddr), addr))
+                    self.socket.sendto(bytes("hello-ack-" +"-"+ str(self.mcastAddr)), addr)
                 else:
-                    self.socket.sendto(bytes("Cliente ja existente" + addr.encode(), addr))
+                    self.socket.sendto(bytes("Cliente ja existente" + addr.encode()), addr)
             
             elif data.split('-')[0] == "ready":
                 #verificar se o addr esta presente no dicionario
@@ -71,30 +71,30 @@ class controlHandler(threading.Thread):
                         self.socket.sendto(bytes("ready-ack" + addr.encode(), addr))
                         totalReadyPlayers += 1
                     else:
-                        self.socket.sendto(bytes("Cliente ja esta pronto" + addr.encode(), addr))
+                        self.socket.sendto(bytes("Cliente ja esta pronto" + addr.encode()), addr)
                 else:
-                    self.socket.sendto(bytes("Cliente nao encontrado" + addr.encode(), addr))
+                    self.socket.sendto(bytes("Cliente nao encontrado" + addr.encode()), addr)
             elif data.split('-')[0] == "control":
                 #verificar se o addr esta presente no dicionario, dar update ao atributo online para 1
                 if addr in clients.keys():
                     clients[addr]["online"] = 1
-                    self.socket.sendto(bytes("control-ack" + addr.encode(), addr))
+                    self.socket.sendto(bytes("control-ack" + addr.encode()), addr)
                 else:
-                    self.socket.sendto(bytes("Cliente nao encontrado" + addr.encode(), addr))
+                    self.socket.sendto(bytes("Cliente nao encontrado" + addr.encode()), addr)
             elif data.split('-')[0] == "disconnect":
                 #verificar se o addr esta presente no dicionario, dar update ao atributo online para 0
                 if addr in clients.keys():
                     clients[addr]['online'] = 0
-                    self.socket.sendto(bytes("disconnect-ack" + addr.encode(), addr))
+                    self.socket.sendto(bytes("disconnect-ack" + addr.encode()), addr)
                 else:
-                    self.socket.sendto(bytes("Cliente nao encontrado") + addr.encode(), addr)
+                    self.socket.sendto(bytes("Cliente nao encontrado" + addr.encode()), addr)
             elif data.split('-')[0] == "ingame":
                 #verificar se o addr esta presente no dicionario, dar update ao atributo online para 1
                 if addr in clients.keys():
                     clients[addr]["ingame"] = 1
-                    self.socket.sendto(bytes("ingame-ack" + addr.encode(), addr))
+                    self.socket.sendto(bytes("ingame-ack" + addr.encode()), addr)
                 else:
-                    self.socket.sendto(bytes("Cliente nao encontrado" + addr.encode(), addr))
+                    self.socket.sendto(bytes("Cliente nao encontrado" + addr.encode()), addr)
 
 
 
