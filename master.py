@@ -79,21 +79,21 @@ class controlHandler(threading.Thread):
             elif data.split('-')[0] == "control":
                 #verificar se o addr esta presente no dicionario, dar update ao atributo online para 1
                 if addr in clients.keys():
-                    clients[addr]["online"] = 1
+                    clients[addr[0]]["online"] = 1
                     self.socket.sendto(bytes("control-ack" + addr.encode()), addr)
                 else:
                     self.socket.sendto(bytes("Cliente nao encontrado" + addr.encode()), addr)
             elif data.split('-')[0] == "disconnect":
                 #verificar se o addr esta presente no dicionario, dar update ao atributo online para 0
                 if addr in clients.keys():
-                    clients[addr]['online'] = 0
+                    clients[addr[0]]['online'] = 0
                     self.socket.sendto(bytes("disconnect-ack" + addr.encode()), addr)
                 else:
                     self.socket.sendto(bytes("Cliente nao encontrado" + addr.encode()), addr)
             elif data.split('-')[0] == "ingame":
                 #verificar se o addr esta presente no dicionario, dar update ao atributo online para 1
                 if addr in clients.keys():
-                    clients[addr]["ingame"] = 1
+                    clients[addr[0]]["ingame"] = 1
                     self.socket.sendto(bytes("ingame-ack" + addr.encode()), addr)
                 else:
                     self.socket.sendto(bytes("Cliente nao encontrado" + addr.encode()), addr)
