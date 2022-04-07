@@ -118,3 +118,6 @@ def main():
     game = GameHandler(serverAddr)
     game.start()
     game.join()
+    
+if __name__ == "__main__":
+    main()

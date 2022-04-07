@@ -161,6 +161,7 @@ class gameHandler(threading.Thread):
                 results[addr]["tempo"] = data.split('-')[2]
                 controlCounter += 1
                 print("Escolha recebida")
+                self.controlSocket.sendto(b'choice-ok', addr)
         print("Resultados Todos Recebidos:")
         print(results)
 
