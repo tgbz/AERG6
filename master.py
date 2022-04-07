@@ -203,7 +203,7 @@ class gameHandler(threading.Thread):
             time.sleep(1)
     
 def main():
-    controlT = controlHandler(sys.argv[1])
+    controlT = controlHandler()
     controlT.start()
     gameT = gameHandler()
     gameT.start()
