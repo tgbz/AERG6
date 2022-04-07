@@ -1,7 +1,7 @@
 import pyaudio, wave, threading, time
 
 
-class player(threading.Thread):
+class Player(threading.Thread):
     def __init__(self,file):
         self.wf = wave.open(file)
         self.p = pyaudio.PyAudio()

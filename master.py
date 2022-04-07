@@ -1,234 +1,212 @@
-import socket, threading, json, random, Sender, pickle, time
-from unicodedata import name 
+import socket, threading,  json, random, Sender, pickle, time, sys
 
-
-
-maxPlayersForGame = 3;
-
-
+##Global Vars
 clients = dict()
+maxPlayersForGame = 2
+totalReadyPlayers = 0
 
-
-#formato mensagens login
-#hello-hostname-join
-#ready-
-
-"""dicionário clientes
-    {
-        hostname: {
-            addr:ipv6,
-            port:port,
-            ready: 0,
-            ingame: 0/1
-            },
-            ...
-    }
-"""
-
-
-class gameLogin(threading.Thread):
-    def __init__(self):
+class controlHandler(threading.Thread):
+    def __init__(self, sAddr):
+        threading.Thread.__init__(self)
         global clients
         self.port = 8080
         self.hostName = socket.gethostname()
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.buffer = 2048
-        self.mCastAddr = "FF02::1"
-
-    #Add client based on hostname as key to clients dictionary, if it doesn't exist
-    def addClient(self, hostname, addr, port):
-        if hostname not in clients.keys():
-            clients[hostname] = {
-                "addr": addr,
+        self.serverAddr = sAddr
+        global totalReadyPlayers
+    
+    #Adicionar cliente, utilizando o endereço do cliente como chave.
+    #Caso ele já exista, não faz nada.
+    def addClient(self, addr, port):
+        if addr not in clients.keys():
+            clients[addr] = {
                 "port": port,
                 "ready": 0,
-                "ingame": 0
+                "ingame": 0,
+                "online": 1
             }
-            print("Client " + hostname + " added")
+            print("Cliente " + addr + " adicionado")
         else:
-            print("Client " + hostname + " already exists")
-        return clients[hostname]
+            print("Cliente " + addr + " já existe")
+        return clients[addr]
 
-    #Remove client
-    def removeClient(self, hostname):
-        if hostname in clients.keys():
-            clients.pop(hostname)
-            print("Client " + hostname + " removed")
+    def removeClient(self, addr):
+        if addr in clients.keys():
+            clients.pop(addr)
+            print("Cliente " + addr + " removido")
         else:
-            print("Client " + hostname + " not found")
-        return clients[hostname]
-
-    def handler(self):
-        self.socket.bind(('', self.port))
+            print("Cliente " + addr + " não encontrado")
+        return clients[addr]
+    
+    def getClient(self, addr):
+        if addr in clients.keys():
+            return clients[addr]
+        else:
+            print("Cliente nao encontrado")
+            return None
+    
+    def run(self):
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)
+        self.socket.bind(('', self.port))
+        self.mcastAddr = 'FF02::1'
         while True:
-            data,addr = self.socket.recvfrom(self.buffer)
+            data, addr = self.socket.recvfrom(self.buffer)
             
             if data.split('-')[0] == 'hello':
-                hostname = data.split('-')[1]
-                if hostname not in clients.keys():
-                    self.addClient(hostname, addr[0], addr[1])
-                    self.socket.sendto(b'hello-ack-' + self.mCastAddr, addr)
+                #verificar se o addr esta presente no dicionario
+                if addr not in clients.keys():
+                    self.addClient(addr[0], addr[1])
+                    self.socket.sendto(b'hello-ack-' + str(self.serverAddr) +'-'+ str(self.mcastAddr), addr)
                 else:
-                    self.socket.sendto(b'you are already in the group' + hostname.encode(), addr)
+                    self.socket.sendto(b'Cliente ja existente' + addr.encode(), addr)
+            
             elif data.split('-')[0] == 'ready':
-                hostname = data.split('-')[1]
-                if hostname in clients.keys():
-                    if clients[hostname]['ready'] == 0:
-                        clients[hostname]['ready'] = 1
-                        self.socket.sendto(b'ready-ack' + hostname.encode(), addr)
+                #verificar se o addr esta presente no dicionario
+                if addr in clients.keys():
+                    if clients[addr]['ready'] == 0:
+                        clients[addr]['ready'] = 1
+                        self.socket.sendto(b'ready-ack' + addr.encode(), addr)
+                        totalReadyPlayers += 1
                     else:
-                        self.socket.sendto(b'You are already ready' + hostname.encode(), addr)
+                        self.socket.sendto(b'Cliente ja esta pronto' + addr.encode(), addr)
                 else:
-                    self.socket.sendto(b'you are not in the group' + hostname.encode(), addr)
-    def run(self):
-        self.handler()
+                    self.socket.sendto(b'Cliente nao encontrado' + addr.encode(), addr)
+            elif data.split('-')[0] == 'control':
+                #verificar se o addr esta presente no dicionario, dar update ao atributo online para 1
+                if addr in clients.keys():
+                    clients[addr]['online'] = 1
+                    self.socket.sendto(b'control-ack' + addr.encode(), addr)
+                else:
+                    self.socket.sendto(b'Cliente nao encontrado' + addr.encode(), addr)
+            elif data.split('-')[0] == 'disconnect':
+                #verificar se o addr esta presente no dicionario, dar update ao atributo online para 0
+                if addr in clients.keys():
+                    clients[addr]['online'] = 0
+                    self.socket.sendto(b'disconnect-ack' + addr.encode(), addr)
+                else:
+                    self.socket.sendto(b'Cliente nao encontrado' + addr.encode(), addr)
+            elif data.split('-')[0] == 'ingame':
+                #verificar se o addr esta presente no dicionario, dar update ao atributo online para 1
+                if addr in clients.keys():
+                    clients[addr]['ingame'] = 1
+                    self.socket.sendto(b'ingame-ack' + addr.encode(), addr)
+                else:
+                    self.socket.sendto(b'Cliente nao encontrado' + addr.encode(), addr)
 
 
 
 
 class gameHandler(threading.Thread):
     def __init__(self):
+        threading.Thread.__init__(self)
         self.songDB = "songlist.json"
         self.songList = json.load(open(self.songDB))
         self.mCastSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
-        self.mCastSocket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)
+        self.mCastSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.mCastSocket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, 1)
-        self.mCastSocket.bind(('',self.ip))
-        self.controlSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.ip = "FF02::1"
-        self.port = 30000
-        self.gameState = 0
-        self.totalPlayers = 0
-        self.currentGameNumberOfPlayers = 0
+        self.mcastPort = 50000
+        self.mcastAddr = 'FF02::1'
 
-    def roundHandler(self):
-        #select random number between 1 and 5 to choose a song based on songlist key, where the keys are numbers between 1 and 5
+        self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+        self.controlSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.controlPort = 30000
+
+        self.gameState = 0
+        self.currentGameNumberOfPlayers = 0
+        global totalReadyPlayers
+    
+
+    def generateGame(self):
         song = random.randint(1,5)
-        # go through clients
-        #send the song to the clients
         fileToSend = self.songList[song]["filepath"]
         selectedSongName = self.songList[song]["title"]
         selectedSongArtist = self.songList[song]["artist"]
         self.currentGameNumberOfPlayers = self.getReadyPlayers()
         choices = self.getRandomSongs()
         controlCounter = 0
-        print("Sending song to " + str(self.currentGameNumberOfPlayers) + " players")
-        #call sender class with ip,port,filepath,socket, where ip is the multicastaddr
-        Sender(self.ip, self.port, fileToSend, self.mCastSocket)         
+        print("A enviar música para " + str(self.currentGameNumberOfPlayers) + " players")
+        Sender(self.ip, self.port, fileToSend, self.mCastSocket)
+
         while controlCounter < self.currentGameNumberOfPlayers:
             data, addr = self.controlSocket.recvfrom(self.buffer)
             if data.decode() == "song-ok":
                 controlCounter += 1
-        print("Song sent to all players")
+            print("Música enviada para todos os players")
+        self.gameState = 1
+        print("Procedendo ao envio das hipóteses de escolha:")
         controlCounter = 0
-        self.mCastSocket.sendto(pickle.dumps(choices) (self.ip, self.port))
+        self.mCastSocket.sendto(pickle.dumps(choices) (self.mcastAddr, self.mcastPort))
+        
         while controlCounter < self.currentGameNumberOfPlayers:
             data, addr = self.controlSocket.recvfrom(self.buffer)
             if data.decode() == "choices-ok":
                 controlCounter += 1
+                print("Hipóteses de escolha enviadas para todos os players")
         controlCounter = 0
-        self.mCastSocket.sendto(b'game-start', (self.ip, self.port))
+        
+        self.mCastSocket.sendto(b'game-start', (self.mcastAddr, self.mcastPort))
         while controlCounter < self.currentGameNumberOfPlayers:
             data, addr = self.controlSocket.recvfrom(self.buffer)
             if data.decode() == "game-start-ok":
                 controlCounter += 1
+                print("Jogo iniciado")
         results = dict()
         while controlCounter < self.currentGameNumberOfPlayers:
-            data, addr = self.controlSocket(self.buffer)
-            ##choice-songname-artist
+            data, addr = self.controlSocket.recvfrom(self.buffer)
             if data.split('-')[0] == 'choice':
-                results[addr] = data.split('-')[2]
-                print(results)
+                results[addr]["escolha"] = data.split('-')[1]
+                results[addr]["tempo"] = data.split('-')[2]
                 controlCounter += 1
-        
-        #function to get the winner, comparing their choice to the song tittle
-        winner = self.getWinner(results, selectedSongName, selectedSongArtist)
-        print("The winner is " + winner)
-        self.mCastSocket.sendto(b'game-end', (self.ip, self.port))
-        self.mCastSocket.sendto(pickle.dumps(choices),  (self.ip, self.port))
+                print("Escolha recebida")
+        print("Resultados Todos Recebidos:")
+        print(results)
+
+        winner = self.getWinner(results, selectedSongName)
+        print("O vencedor foi: " + winner)
+        self.mCastSocket.sendto(b'winner-' + winner[0].encode() + "-" + winner[1].encode(), (self.mcastAddr, self.mcastPort))
+        print("jogo terminado")
         self.gameState = 0
-        self.totalPlayers = 0
-        #wait for all players to choose a song and store it in a dictionary as follows:
-        # {
-        #   hostname: {
-        #       choice: songname,
-        #       addr: address,
-        #       port: port
-        #   }
-        # }
-        
+        self.currentGameNumberOfPlayers = 0
+        global totalReadyPlayers 
+        totalReadyPlayers = 0
 
-    def getWinner(self, results, selectedSongName, selectedSongArtist):
-        winners = []
-        for key, value in results.items():
-            if value == selectedSongName:
-                winners.append(key)
-        return winners
-
-    def getRandomSongs(self):
-        choices = []
-        for i in range(4):
-            song = random.randint(1,5)
-            choices.append(self.songList[song])
-        return choices
-    
-    def verifyClientReady(self, hostname):
-
-        if hostname in clients.keys():
-            if clients[hostname]["ready"] == 1:
-                return True
-            else:
-                return False
-        else:
-            return False
-
-    #Verify if client is in game
-
-    def verifyClientInGame(self, hostname):
-        if hostname in clients.keys():
-            if clients[hostname]["ingame"] == 1:
-                return True
-            else:
-                return False
-        else:
-            return False
-
-    #function to get the players that are ready, returning an array containing its addresses
-    def getReadyPlayersAddr(self):
-        readyPlayers = []
-        for client in clients.keys():
-            if clients[client]["ready"] == 1:
-                readyPlayers.append(clients[client]["addr"])
-        return readyPlayers
-
-    #function to get the number of players that are ready
     def getReadyPlayers(self):
         readyPlayers = 0
-        for client in clients.keys():
-            if clients[client]["ready"] == 1:
+        for client in clients:
+            if clients[client]['ready'] == 1:
                 readyPlayers += 1
         return readyPlayers
- 
+    
+    def getRandomSongs(self):
+        choices = dict()
+        for client in clients:
+            if clients[client]['ready'] == 1:
+                choices[client] = random.randint(1,5)
+        return choices
+    
+    def getWinner(self, results, selectedSongName):
+        winner = dict()
+        for client in results:
+            if results[client]["escolha"] == selectedSongName:
+                winner[client] = results[client]["tempo"]
+        return min(winner, key=winner.get)
+    
     def run(self):
-        while self.currentGameNumberOfPlayers <= maxPlayersForGame:
-            print("Waiting for Players to game!")
-            time.sleep(2)
-        self.roundHandler()
-        
-        
-#main function
+        global totalReadyPlayers
+        global maxPlayersForGame
+        while True:
+            if totalReadyPlayers == maxPlayersForGame:
+                self.generateGame()
+            time.sleep(1)
+    
 def main():
-    #start game Login thread
-    print("Starting Game Threads...\n")
-    loginThread = gameLogin()
-    loginThread.start()
-    gameThread = gameHandler()
-    gameThread.start()
-    
-if name == '__main__':
-    main()
+    controlT = controlHandler(sys.argv[1])
+    controlT.start()
+    gameT = gameHandler()
+    gameT.start()
 
-    
+if __name__ == '__main__':
+    main()
