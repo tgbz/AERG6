@@ -11,7 +11,8 @@ class controlHandler(threading.Thread):
         global clients
         self.port = 8080
         self.hostName = socket.gethostname()
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        #ipv6 socket
+        self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
         self.buffer = 2048
         global totalReadyPlayers
     
@@ -46,9 +47,8 @@ class controlHandler(threading.Thread):
             return None
     
     def run(self):
+        print("In Control Handler\n")
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
-        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)
         self.socket.bind(('', self.port))
         self.mcastAddr = 'FF02::1'
         while True:
@@ -105,7 +105,9 @@ class gameHandler(threading.Thread):
         self.songList = json.load(open(self.songDB))
         self.mCastSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
         self.mCastSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.mCastSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT,1)
         self.mCastSocket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, 1)
+        self.mCastSocket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 5)
         self.mcastPort = 50000
         self.mcastAddr = 'FF02::1'
 
