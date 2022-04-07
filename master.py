@@ -6,14 +6,13 @@ maxPlayersForGame = 2
 totalReadyPlayers = 0
 
 class controlHandler(threading.Thread):
-    def __init__(self, sAddr):
+    def __init__(self):
         threading.Thread.__init__(self)
         global clients
         self.port = 8080
         self.hostName = socket.gethostname()
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.buffer = 2048
-        self.serverAddr = sAddr
         global totalReadyPlayers
     
     #Adicionar cliente, utilizando o endereço do cliente como chave.
@@ -59,7 +58,7 @@ class controlHandler(threading.Thread):
                 #verificar se o addr esta presente no dicionario
                 if addr not in clients.keys():
                     self.addClient(addr[0], addr[1])
-                    self.socket.sendto(b'hello-ack-' + str(self.serverAddr) +'-'+ str(self.mcastAddr), addr)
+                    self.socket.sendto(b'hello-ack-' +'-'+ str(self.mcastAddr), addr)
                 else:
                     self.socket.sendto(b'Cliente ja existente' + addr.encode(), addr)
             
