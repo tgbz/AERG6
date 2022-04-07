@@ -1,12 +1,13 @@
-import socket, sys, threading, json, random, Sender
+import socket, threading, json, random, Sender, pickle, time
+from unicodedata import name 
 
 
-type = sys.argv[1]
 
 maxPlayersForGame = 3;
 
 
 clients = dict()
+
 
 #formato mensagens login
 #hello-hostname-join
@@ -100,6 +101,7 @@ class gameHandler(threading.Thread):
         self.port = 30000
         self.gameState = 0
         self.totalPlayers = 0
+        self.currentGameNumberOfPlayers = 0
 
     def roundHandler(self):
         #select random number between 1 and 5 to choose a song based on songlist key, where the keys are numbers between 1 and 5
@@ -107,15 +109,71 @@ class gameHandler(threading.Thread):
         # go through clients
         #send the song to the clients
         fileToSend = self.songList[song]["filepath"]
-        numberOfPlayers = self.getReadyPlayers()
+        selectedSongName = self.songList[song]["title"]
+        selectedSongArtist = self.songList[song]["artist"]
+        self.currentGameNumberOfPlayers = self.getReadyPlayers()
+        choices = self.getRandomSongs()
         controlCounter = 0
-        print("Sending song to " + str(numberOfPlayers) + " players")
+        print("Sending song to " + str(self.currentGameNumberOfPlayers) + " players")
         #call sender class with ip,port,filepath,socket, where ip is the multicastaddr
         Sender(self.ip, self.port, fileToSend, self.mCastSocket)         
+        while controlCounter < self.currentGameNumberOfPlayers:
+            data, addr = self.mCastSocket.recvfrom(self.buffer)
+            if data.decode() == "song-ok":
+                controlCounter += 1
+        print("Song sent to all players")
+        controlCounter = 0
+        self.mCastSocket.sendto(pickle.dumps(choices) (self.ip, self.port))
+        while controlCounter < self.currentGameNumberOfPlayers:
+            data, addr = self.mCastSocket.recvfrom(self.buffer)
+            if data.decode() == "choices-ok":
+                controlCounter += 1
+        controlCounter = 0
+        self.mCastSocket.sendto(b'game-start', (self.ip, self.port))
+        while controlCounter < self.currentGameNumberOfPlayers:
+            data, addr = self.mCastSocket.recvfrom(self.buffer)
+            if data.decode() == "game-start-ok":
+                controlCounter += 1
+        results = dict()
+        while controlCounter < self.currentGameNumberOfPlayers:
+            data, addr = self.controlSocket(self.buffer)
+            ##choice-songname-artist
+            if data.split('-')[0] == 'choice':
+                results[addr] = data.split('-')[2]
+                print(results)
+                controlCounter += 1
+        
+        #function to get the winner, comparing their choice to the song tittle
+        winner = self.getWinner(results, selectedSongName, selectedSongArtist)
+        print("The winner is " + winner)
+        self.mCastSocket.sendto(b'game-end', (self.ip, self.port))
+        self.mCastSocket.sendto(pickle.dumps(choices),  (self.ip, self.port))
+        self.gameState = 0
+        self.totalPlayers = 0
+        #wait for all players to choose a song and store it in a dictionary as follows:
+        # {
+        #   hostname: {
+        #       choice: songname,
+        #       addr: address,
+        #       port: port
+        #   }
+        # }
+        
 
+    def getWinner(self, results, selectedSongName, selectedSongArtist):
+        winners = []
+        for key, value in results.items():
+            if value == selectedSongName:
+                winners.append(key)
+        return winners
 
-
-
+    def getRandomSongs(self):
+        choices = []
+        for i in range(4):
+            song = random.randint(1,5)
+            choices.append(self.songList[song])
+        return choices
+    
     def verifyClientReady(self, hostname):
 
         if hostname in clients.keys():
@@ -153,4 +211,23 @@ class gameHandler(threading.Thread):
                 readyPlayers += 1
         return readyPlayers
  
+    def run(self):
+        while self.currentGameNumberOfPlayers <= maxPlayersForGame:
+            print("Waiting for Players to game!")
+            time.sleep(2)
+        self.roundHandler()
+        
+        
+#main function
+def main():
+    #start game Login thread
+    print("Starting Game Threads...\n")
+    loginThread = gameLogin()
+    loginThread.start()
+    gameThread = gameHandler()
+    gameThread.start()
+    
+if name == '__main__':
+    main()
 
+    

@@ -1,6 +1,6 @@
 import socket, select, threading
 
-class Receiver(threading.Thread):
+class Receiver():
     def __init__(self,ip,port,socket,filepath):
         self.ip = ip
         self.port = port
@@ -8,7 +8,7 @@ class Receiver(threading.Thread):
         self.buffer = 2048
         self.s = socket
         self.f=open(filepath,'wb')
-    def run(self):
+    def worker(self):
         self.s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
         self.s.bind((self.ip, self.port))
         self.s.settimeout(self.timeout)
@@ -26,4 +26,5 @@ class Receiver(threading.Thread):
                 print("file transfer complete")
                 self.f.close()
                 break
+        return 1
         
