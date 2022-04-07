@@ -57,7 +57,6 @@ class GameHandler(threading.Thread):
         self.timeEnd = 0
         self.finalTime = 0
         self.selected = 0
-        global gameState
        
     def displayChoices(self):
         print("Choices:")
@@ -68,6 +67,7 @@ class GameHandler(threading.Thread):
        
         
     def run(self):
+        global gameState
         while True:
             while gameState == 0:
                 time.sleep(1)
