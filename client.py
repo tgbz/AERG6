@@ -25,6 +25,7 @@ class loginStatusHandler(threading.Thread):
             mCastAddr = data.split('-')[2]
         
         else:
+            print(str(data))
             print("Unknown message!")
         
         self.controlSocket.sendto('ready-'.encode(), (self.serverAddr, self.controlPort))
@@ -33,6 +34,7 @@ class loginStatusHandler(threading.Thread):
         if data.split ('-')[0] == 'ready' and data.split('-')[1] == 'ack':
             print("Ready ok!")
         else:
+            print("message:" +str(data))
             print("Unknown message!")
         while True:
             time.sleep(5)
