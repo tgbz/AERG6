@@ -3,7 +3,7 @@ from unicodedata import name
 
 
 
-maxPlayersForGame = 3;
+maxPlayersForGame = 2;
 
 
 clients = dict()
