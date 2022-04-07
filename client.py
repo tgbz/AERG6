@@ -29,6 +29,7 @@ class loginStatusHandler(threading.Thread):
         
         self.controlSocket.sendto('ready-'.encode(), (self.serverAddr, self.controlPort))
         data, addr = self.controlSocket.recvfrom(self.buffer)
+        data = data.decode()
         if data.split ('-')[0] == 'ready' and data.split('-')[1] == 'ack':
             print("Ready ok!")
         else:
@@ -37,6 +38,7 @@ class loginStatusHandler(threading.Thread):
             time.sleep(5)
             self.controlSocket.sendto('control-'.encode(), (self.serverAddr, self.controlPort))
             data, addr = self.controlSocket.recvfrom(self.buffer)
+            data = data.decode()
             if data.split ('-')[0] == 'control' and data.split('-')[1] == 'ack':
                 print("Control ok!")
                 time.sleep(5)
