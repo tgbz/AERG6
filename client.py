@@ -42,7 +42,8 @@ class loginStatusHandler(threading.Thread):
             if data.split ('-')[0] == 'control' and data.split('-')[1] == 'ack':
                 print("Control ok!")
                 time.sleep(5)
-            else: 
+            else:
+                print("message:" +str(data)) 
                 print("Unknown message!")
                 break
         
