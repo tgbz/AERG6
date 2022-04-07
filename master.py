@@ -47,6 +47,7 @@ class controlHandler(threading.Thread):
             return None
     
     def run(self):
+        global totalReadyPlayers
         print("In Control Handler\n")
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind(('', self.port))
