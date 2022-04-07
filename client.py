@@ -19,6 +19,7 @@ class loginStatusHandler(threading.Thread):
         self.controlSocket.sendto('hello-'.encode(), (self.serverAddr, self.controlPort))
     
         data, addr = self.controlSocket.recvfrom(self.buffer)
+        data = data.decode()
         if data.split ('-')[0] == 'hello' and data.split('-')[1] == 'ack':
             print("Hello OK!")
             mCastAddr = data.split('-')[2]
