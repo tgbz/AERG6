@@ -74,7 +74,7 @@ class controlHandler(threading.Thread):
                     else:
                         self.socket.sendto(bytes(str("Cliente ja esta pronto" + addr.encode())), addr)
                 else:
-                    self.socket.sendto(bytes("Cliente nao encontrado" + addr.encode()), addr)
+                    self.socket.sendto(bytes("Cliente nao encontrado" + str(addr[0]).encode()), addr)
             elif data.split('-')[0] == "control":
                 #verificar se o addr esta presente no dicionario, dar update ao atributo online para 1
                 if addr in clients.keys():
