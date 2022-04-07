@@ -59,7 +59,7 @@ class controlHandler(threading.Thread):
                 #verificar se o addr esta presente no dicionario
                 if addr not in clients.keys():
                     self.addClient(addr[0], addr[1])
-                    self.socket.sendto(bytes("hello-ack-" +"-"+ str(self.mcastAddr)), addr)
+                    self.socket.sendto(bytes("hello-ack-" +"-"+ str(self.mcastAddr).encode()), addr)
                 else:
                     self.socket.sendto(bytes("Cliente ja existente" + addr.encode()), addr)
             
@@ -68,7 +68,7 @@ class controlHandler(threading.Thread):
                 if addr in clients.keys():
                     if clients[addr]["ready"] == 0:
                         clients[addr]["ready"] = 1
-                        self.socket.sendto(bytes("ready-ack" + addr.encode(), addr))
+                        self.socket.sendto(bytes("ready-ack" + addr.encode()), addr)
                         totalReadyPlayers += 1
                     else:
                         self.socket.sendto(bytes("Cliente ja esta pronto" + addr.encode()), addr)
