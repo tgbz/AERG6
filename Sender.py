@@ -21,6 +21,7 @@ class Sender(threading.Thread):
             print("Trying to send..")
             if(self.s.sendto(data,(self.ip,self.port))):
                 data=self.f.read(self.buffer)
+                print("file sent")
                 time.sleep(0.05)
         self.f.close()
         print("Song sent on multicast")

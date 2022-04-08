@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 3,
+            "activePatchIndex": 4,
             "patches": [
                 {
                     "date": 1649427630251,
@@ -20,6 +20,10 @@
                 {
                     "date": 1649428523943,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -22,6 +22,7 @@\n             if(self.s.sendto(data,(self.ip,self.port))):\n                 data=self.f.read(self.buffer)\n                 time.sleep(0.05)\n         self.f.close()\n+        print(\"Song sent on multicast\")\n \n     \n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1649428582418,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -20,8 +20,9 @@\n         while(data):\n             print(\"Trying to send..\")\n             if(self.s.sendto(data,(self.ip,self.port))):\n                 data=self.f.read(self.buffer)\n+                print(\"file sent\")\n                 time.sleep(0.05)\n         self.f.close()\n         print(\"Song sent on multicast\")\n \n"
                 }
             ],
             "date": 1649427630251,
