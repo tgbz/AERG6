@@ -132,6 +132,7 @@ class gameHandler(threading.Thread):
             song = random.randint(1,5)
             print("Musica escolhida" + str(song))
             print(self.songList)
+            print("Atributos da musica escolhida" + str(self.songList[song]))
             fileToSend = self.songList[song]["filePath"]
             selectedSongName = self.songList[song]["title"]
             selectedSongArtist = self.songList[song]["artist"]
