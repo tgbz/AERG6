@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 17,
+            "activePatchIndex": 19,
             "patches": [
                 {
                     "date": 1649321125937,
@@ -76,6 +76,14 @@
                 {
                     "date": 1649426653636,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -202,12 +202,12 @@\n     def run(self):\n         global totalReadyPlayers\n         global maxPlayersForGame\n         while True:\n-            print(\"Waiting to test game\")\n+            print(\"À espera de jogadores suficientes\")\n             if totalReadyPlayers == maxPlayersForGame:\n                 self.generateGame()\n-            time.sleep(1)\n+            time.sleep(5)\n     \n def main():\n     controlT = controlHandler()\n     controlT.start()\n"
+                },
+                {
+                    "date": 1649426709975,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -68,8 +68,9 @@\n             elif data.split('-')[0] == \"ready\":\n                 #verificar se o addr esta presente no dicionario\n                 if addr[0] in clients.keys():\n                     if clients[addr][\"ready\"] == 0:\n+                        print(\"A adicionar ready a um cliente\")\n                         clients[addr][\"ready\"] = 1\n                         self.socket.sendto(bytes(str(\"ready-ack-\" + str(addr).encode())), addr)\n                         totalReadyPlayers += 1\n                         print(\"Numero total de players à espera: \" + str(totalReadyPlayers))\n"
+                },
+                {
+                    "date": 1649426720669,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -71,8 +71,9 @@\n                     if clients[addr][\"ready\"] == 0:\n                         print(\"A adicionar ready a um cliente\")\n                         clients[addr][\"ready\"] = 1\n                         self.socket.sendto(bytes(str(\"ready-ack-\" + str(addr).encode())), addr)\n+                        print(\"A incrementar numero total de players\")\n                         totalReadyPlayers += 1\n                         print(\"Numero total de players à espera: \" + str(totalReadyPlayers))\n                     else:\n                         self.socket.sendto(bytes(str(\"Cliente ja esta pronto\" + addr.encode())), addr)\n"
                 }
             ],
             "date": 1649321125937,
