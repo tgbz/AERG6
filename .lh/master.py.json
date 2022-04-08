@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 30,
+            "activePatchIndex": 31,
             "patches": [
                 {
                     "date": 1649321125937,
@@ -128,6 +128,10 @@
                 {
                     "date": 1649427479740,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -139,9 +139,9 @@\n             self.currentGameNumberOfPlayers = self.getReadyPlayers()\n             choices = self.getRandomSongs()\n             controlCounter = 0\n             print(\"A enviar música para \" + str(self.currentGameNumberOfPlayers) + \" players\")\n-            Sender(self.ip, self.port, fileToSend, self.mCastSocket)\n+            Sender(self.mcastAddr, self.port, fileToSend, self.mCastSocket)\n \n             while controlCounter < self.currentGameNumberOfPlayers:\n                 data, addr = self.controlSocket.recvfrom(self.buffer)\n                 if data.decode() == \"song-ok\":\n"
+                },
+                {
+                    "date": 1649427561526,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -139,9 +139,9 @@\n             self.currentGameNumberOfPlayers = self.getReadyPlayers()\n             choices = self.getRandomSongs()\n             controlCounter = 0\n             print(\"A enviar música para \" + str(self.currentGameNumberOfPlayers) + \" players\")\n-            Sender(self.mcastAddr, self.port, fileToSend, self.mCastSocket)\n+            Sender(self.mcastAddr, self.mcastPort, fileToSend, self.mCastSocket)\n \n             while controlCounter < self.currentGameNumberOfPlayers:\n                 data, addr = self.controlSocket.recvfrom(self.buffer)\n                 if data.decode() == \"song-ok\":\n"
                 }
             ],
             "date": 1649321125937,
