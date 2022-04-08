@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 13,
+            "activePatchIndex": 15,
             "patches": [
                 {
                     "date": 1649321125937,
@@ -60,6 +60,14 @@
                 {
                     "date": 1649426037390,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -58,9 +58,9 @@\n             \n             if data.split('-')[0] == \"hello\":\n                 #verificar se o addr esta presente no dicionario\n                 if addr not in clients.keys():\n-                    self.addClient(addr[0], addr[1])\n+                    self.addClient(addr, addr[1])\n                     self.socket.sendto(bytes(str(\"hello-ack-\"+ str(self.mcastAddr)).encode()), addr)\n                 else:\n                     self.socket.sendto(bytes(\"Cliente ja existente\" + addr.encode()), addr)\n                 print(clients)\n"
+                },
+                {
+                    "date": 1649426134776,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -25,11 +25,11 @@\n                 \"ready\": 0,\n                 \"ingame\": 0,\n                 \"online\": 1\n             }\n-            print(\"Cliente \" + addr + \" adicionado\")\n+            print(\"Cliente \" + str(addr) + \" adicionado\")\n         else:\n-            print(\"Cliente \" + addr + \" já existe\")\n+            print(\"Cliente \" + str(addr) + \" já existe\")\n         return clients[addr]\n \n     def removeClient(self, addr):\n         if addr in clients.keys():\n"
+                },
+                {
+                    "date": 1649426143676,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -33,11 +33,11 @@\n \n     def removeClient(self, addr):\n         if addr in clients.keys():\n             clients.pop(addr)\n-            print(\"Cliente \" + addr + \" removido\")\n+            print(\"Cliente \" + str(addr) + \" removido\")\n         else:\n-            print(\"Cliente \" + addr + \" não encontrado\")\n+            print(\"Cliente \" + str(addr) + \" não encontrado\")\n         return clients[addr]\n     \n     def getClient(self, addr):\n         if addr in clients.keys():\n"
                 }
             ],
             "date": 1649321125937,

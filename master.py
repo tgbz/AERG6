@@ -26,17 +26,17 @@ class controlHandler(threading.Thread):
                 "ingame": 0,
                 "online": 1
             }
-            print("Cliente " + addr + " adicionado")
+            print("Cliente " + str(addr) + " adicionado")
         else:
-            print("Cliente " + addr + " já existe")
+            print("Cliente " + str(addr) + " já existe")
         return clients[addr]
 
     def removeClient(self, addr):
         if addr in clients.keys():
             clients.pop(addr)
-            print("Cliente " + addr + " removido")
+            print("Cliente " + str(addr) + " removido")
         else:
-            print("Cliente " + addr + " não encontrado")
+            print("Cliente " + str(addr) + " não encontrado")
         return clients[addr]
     
     def getClient(self, addr):
