@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 33,
+            "activePatchIndex": 34,
             "patches": [
                 {
                     "date": 1649321125937,
@@ -140,6 +140,10 @@
                 {
                     "date": 1649428017083,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -139,9 +139,9 @@\n             self.currentGameNumberOfPlayers = self.getReadyPlayers()\n             choices = self.getRandomSongs()\n             controlCounter = 0\n             print(\"A enviar música para \" + str(self.currentGameNumberOfPlayers) + \" players\")\n-            sen = Sender(self.mcastAddr, self.mcastPort, fileToSend, self.mCastSocket)\n+            sen = Sender.Sender(self.mcastAddr, self.mcastPort, fileToSend, self.mCastSocket)\n             sen.start()\n             while controlCounter < self.currentGameNumberOfPlayers:\n                 data, addr = self.controlSocket.recvfrom(self.buffer)\n                 if data.decode() == \"song-ok\":\n"
+                },
+                {
+                    "date": 1649428284769,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -116,8 +116,9 @@\n         self.mCastSocket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, 1)\n         self.mCastSocket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 5)\n         self.mcastPort = 50000\n         self.mcastAddr = 'FF02::1'\n+        self.buffer = 2048\n \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.controlPort = 30000\n"
                 }
             ],
             "date": 1649321125937,

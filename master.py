@@ -117,6 +117,7 @@ class gameHandler(threading.Thread):
         self.mCastSocket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 5)
         self.mcastPort = 50000
         self.mcastAddr = 'FF02::1'
+        self.buffer = 2048
 
         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
         self.controlSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
