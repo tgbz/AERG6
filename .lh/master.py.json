@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 23,
+            "activePatchIndex": 24,
             "patches": [
                 {
                     "date": 1649321125937,
@@ -100,6 +100,10 @@
                 {
                     "date": 1649426886697,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -71,9 +71,9 @@\n                 if addr in clients.keys():\n                     if clients[addr][\"ready\"] == 0:\n                         print(\"A adicionar ready a um cliente\")\n                         clients[addr][\"ready\"] = 1\n-                        self.socket.sendto(bytes(\"ready-ack-\" + str(addr)).encode()), addr)\n+                        self.socket.sendto(bytes((\"ready-ack-\" + str(addr)).encode()), addr)\n                         print(\"A incrementar numero total de players\")\n                         totalReadyPlayers += 1\n                         print(\"Numero total de players à espera: \" + str(totalReadyPlayers))\n                     else:\n"
+                },
+                {
+                    "date": 1649427003021,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -129,8 +129,9 @@\n     def generateGame(self):\n   \n         while True:\n             song = random.randint(1,5)\n+            print(\"Musica escolhida\" + str(song))\n             fileToSend = self.songList[song][\"filepath\"]\n             selectedSongName = self.songList[song][\"title\"]\n             selectedSongArtist = self.songList[song][\"artist\"]\n             self.currentGameNumberOfPlayers = self.getReadyPlayers()\n"
                 }
             ],
             "date": 1649321125937,
