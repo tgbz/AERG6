@@ -72,6 +72,7 @@ class controlHandler(threading.Thread):
                         clients[addr]["ready"] = 1
                         self.socket.sendto(bytes(str("ready-ack-" + str(addr).encode())), addr)
                         totalReadyPlayers += 1
+                        print("Numero total de players à espera: " + str(totalReadyPlayers))
                     else:
                         self.socket.sendto(bytes(str("Cliente ja esta pronto" + addr.encode())), addr)
                 else:
@@ -202,6 +203,7 @@ class gameHandler(threading.Thread):
         global totalReadyPlayers
         global maxPlayersForGame
         while True:
+            print("Waiting to test game")
             if totalReadyPlayers == maxPlayersForGame:
                 self.generateGame()
             time.sleep(1)

@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 15,
+            "activePatchIndex": 16,
             "patches": [
                 {
                     "date": 1649321125937,
@@ -68,6 +68,10 @@
                 {
                     "date": 1649426143676,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -33,11 +33,11 @@\n \n     def removeClient(self, addr):\n         if addr in clients.keys():\n             clients.pop(addr)\n-            print(\"Cliente \" + addr + \" removido\")\n+            print(\"Cliente \" + str(addr) + \" removido\")\n         else:\n-            print(\"Cliente \" + addr + \" não encontrado\")\n+            print(\"Cliente \" + str(addr) + \" não encontrado\")\n         return clients[addr]\n     \n     def getClient(self, addr):\n         if addr in clients.keys():\n"
+                },
+                {
+                    "date": 1649426567141,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -71,8 +71,9 @@\n                     if clients[addr][\"ready\"] == 0:\n                         clients[addr][\"ready\"] = 1\n                         self.socket.sendto(bytes(str(\"ready-ack-\" + str(addr).encode())), addr)\n                         totalReadyPlayers += 1\n+                        print(\"Numero total de players à espera: \" + str(totalReadyPlayers))\n                     else:\n                         self.socket.sendto(bytes(str(\"Cliente ja esta pronto\" + addr.encode())), addr)\n                 else:\n                     self.socket.sendto(bytes(str(\"Cliente nao encontrado\" + str(addr)).encode()), addr)\n@@ -201,8 +202,9 @@\n     def run(self):\n         global totalReadyPlayers\n         global maxPlayersForGame\n         while True:\n+            print(\"Waiting to test game\")\n             if totalReadyPlayers == maxPlayersForGame:\n                 self.generateGame()\n             time.sleep(1)\n     \n"
                 }
             ],
             "date": 1649321125937,

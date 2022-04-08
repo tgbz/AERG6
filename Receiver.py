@@ -4,7 +4,7 @@ class Receiver():
     def __init__(self,ip,port,socket,filepath):
         self.ip = ip
         self.port = port
-        self.timeout = 5
+        self.timeout = 20
         self.buffer = 2048
         self.s = socket
         self.f=open(filepath,'wb')
