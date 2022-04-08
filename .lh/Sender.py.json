@@ -3,11 +3,23 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 0,
+            "activePatchIndex": 3,
             "patches": [
                 {
                     "date": 1649427630251,
                     "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1649428508824,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -15,8 +15,9 @@\n         self.s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)\n         self.s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, 1)\n         data = self.f.read(self.buffer)\n+        print(\"File Read in Sender\")\n         while(data):\n             if(self.s.sendto(data,(self.ip,self.port))):\n                 data=self.f.read(self.buffer)\n                 time.sleep(0.05)\n"
+                },
+                {
+                    "date": 1649428514134,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -17,8 +17,9 @@\n         self.s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, 1)\n         data = self.f.read(self.buffer)\n         print(\"File Read in Sender\")\n         while(data):\n+            print(\"Trying to send..\")\n             if(self.s.sendto(data,(self.ip,self.port))):\n                 data=self.f.read(self.buffer)\n                 time.sleep(0.05)\n         self.f.close()\n"
+                },
+                {
+                    "date": 1649428523943,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -22,6 +22,7 @@\n             if(self.s.sendto(data,(self.ip,self.port))):\n                 data=self.f.read(self.buffer)\n                 time.sleep(0.05)\n         self.f.close()\n+        print(\"Song sent on multicast\")\n \n     \n\\ No newline at end of file\n"
                 }
             ],
             "date": 1649427630251,

@@ -16,10 +16,13 @@ class Sender(threading.Thread):
         self.s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)
         self.s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, 1)
         data = self.f.read(self.buffer)
+        print("File Read in Sender")
         while(data):
+            print("Trying to send..")
             if(self.s.sendto(data,(self.ip,self.port))):
                 data=self.f.read(self.buffer)
                 time.sleep(0.05)
         self.f.close()
+        print("Song sent on multicast")
 
     

@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 2,
+            "activePatchIndex": 3,
             "patches": [
                 {
                     "date": 1649326991814,
@@ -16,6 +16,10 @@
                 {
                     "date": 1649426440029,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -3,9 +3,9 @@\n class Receiver():\n     def __init__(self,ip,port,socket,filepath):\n         self.ip = ip\n         self.port = port\n-        self.timeout = 5\n+        self.timeout = 20\n         self.buffer = 2048\n         self.s = socket\n         self.f=open(filepath,'wb')\n     def worker(self):\n"
+                },
+                {
+                    "date": 1649428443167,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -8,8 +8,9 @@\n         self.buffer = 2048\n         self.s = socket\n         self.f=open(filepath,'wb')\n     def worker(self):\n+        print(\"In Receiver Worker\")\n         self.s.settimeout(self.timeout)\n         data,addr = self.s.recvfrom(self.buffer)\n         if data:\n             print(\"file received\\n\")\n"
                 }
             ],
             "date": 1649326991814,
