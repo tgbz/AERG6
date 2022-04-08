@@ -1,6 +1,4 @@
 {
-    "songs":
-    {
         "1":
         {
             "title": "Another Brick In The Wall",
@@ -31,5 +29,5 @@
             "artist": "Michael Jackson",
             "filePath": "songs/Michael Jackson-Thriller.wav"
         }
-    }
+    
 }

@@ -3,11 +3,15 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 0,
+            "activePatchIndex": 1,
             "patches": [
                 {
                     "date": 1649328086277,
                     "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1649427361294,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,47 +1,33 @@\n {\n-    \"songs\":\n-    {\n         \"1\":\n         {\n             \"title\": \"Another Brick In The Wall\",\n             \"artist\": \"Pink Floyd\",\n-            \"filePath\": \"songs/Pink Floyd - Another Brick In The Wall.mp3\"\n+            \"filePath\": \"songs/Pink Floyd - Another Brick In The Wall.wav\"\n         },\n         \"2\":\n         {\n             \"title\": \"Don't Start Now\",\n             \"artist\": \"Dua Lipa\",\n-            \"filePath\": \"songs/Dua Lipa-Don't Start Now.mp3\"\n+            \"filePath\": \"songs/Dua Lipa-Don't Start Now.wav\"\n         },\n         \"3\":\n         {\n             \"title\": \"Sex Machine\",\n             \"artist\": \"James Brown\",\n-            \"filePath\": \"songs/James Brown-Sex Machine.mp3\"\n+            \"filePath\": \"songs/James Brown-Sex Machine.wav\"\n         },\n         \"4\":\n         {\n             \"title\": \"Uptown Funk\",\n             \"artist\": \"Bruno Mars\",\n-            \"filePath\": \"songs/Bruno Mars-Uptown Funk.mp3\"\n+            \"filePath\": \"songs/Bruno Mars-Uptown Funk.wav\"\n         },\n         \"5\":\n         {\n             \"title\": \"Thriller\",\n             \"artist\": \"Michael Jackson\",\n-            \"filePath\": \"songs/Michael Jackson-Thriller.mp3\"\n-        },\n-        \"6\":\n-        {\n-            \"title\": \"The Way You Make Me Feel\",\n-            \"artist\": \"Drake\",\n-            \"filePath\": \"songs/Drake-The Way You Make Me Feel.mp3\"\n-        },\n-        \"7\":\n-        {\n-            \"title\": \"I'm Yours\",\n-            \"artist\": \"Jason Mraz\",\n-            \"filePath\": \"songs/Jason Mraz-I'm Yours.mp3\"\n+            \"filePath\": \"songs/Michael Jackson-Thriller.wav\"\n         }\n-    }\n+    \n }\n\\ No newline at end of file\n"
                 }
             ],
             "date": 1649328086277,
