@@ -68,28 +68,28 @@ class controlHandler(threading.Thread):
             elif data.split('-')[0] == "ready":
                 #verificar se o addr esta presente no dicionario
                 if addr[0] in clients.keys():
-                    if clients[addr[0]]["ready"] == 0:
-                        clients[addr[0]]["ready"] = 1
-                        self.socket.sendto(bytes(str("ready-ack-" + str(addr[0])).encode()), addr)
+                    if clients[addr]["ready"] == 0:
+                        clients[addr]["ready"] = 1
+                        self.socket.sendto(bytes(str("ready-ack-" + str(addr).encode()), addr)
                         totalReadyPlayers += 1
                     else:
                         self.socket.sendto(bytes(str("Cliente ja esta pronto" + addr.encode())), addr)
                 else:
-                    self.socket.sendto(bytes(str("Cliente nao encontrado" + str(addr[0])).encode()), addr)
+                    self.socket.sendto(bytes(str("Cliente nao encontrado" + str(addr)).encode()), addr)
             elif data.split('-')[0] == "control":
                 #verificar se o addr esta presente no dicionario, dar update ao atributo online para 1
                 if addr in clients.keys():
                     clients[addr[0]]["online"] = 1
                     self.socket.sendto(bytes(str("control-ack" + addr.encode())), addr)
                 else:
-                    self.socket.sendto(bytes(str("Cliente nao encontrado" + str(addr[0])).encode()), addr)
+                    self.socket.sendto(bytes(str("Cliente nao encontrado" + str(addr)).encode()), addr)
             elif data.split('-')[0] == "disconnect":
                 #verificar se o addr esta presente no dicionario, dar update ao atributo online para 0
                 if addr in clients.keys():
                     clients[addr[0]]['online'] = 0
                     self.socket.sendto(bytes("disconnect-ack" + addr.encode()), addr)
                 else:
-                    self.socket.sendto(bytes("Cliente nao encontrado" + str(addr[0]).encode()), addr)
+                    self.socket.sendto(bytes("Cliente nao encontrado" + str(addr).encode()), addr)
             elif data.split('-')[0] == "ingame":
                 #verificar se o addr esta presente no dicionario, dar update ao atributo online para 1
                 if addr in clients.keys():
@@ -118,65 +118,64 @@ class gameHandler(threading.Thread):
         self.controlSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.controlPort = 30000
 
-        self.gameState = 0
         self.currentGameNumberOfPlayers = 0
         global totalReadyPlayers
     
 
     def generateGame(self):
-        song = random.randint(1,5)
-        fileToSend = self.songList[song]["filepath"]
-        selectedSongName = self.songList[song]["title"]
-        selectedSongArtist = self.songList[song]["artist"]
-        self.currentGameNumberOfPlayers = self.getReadyPlayers()
-        choices = self.getRandomSongs()
-        controlCounter = 0
-        print("A enviar música para " + str(self.currentGameNumberOfPlayers) + " players")
-        Sender(self.ip, self.port, fileToSend, self.mCastSocket)
+  
+        while True:
+            song = random.randint(1,5)
+            fileToSend = self.songList[song]["filepath"]
+            selectedSongName = self.songList[song]["title"]
+            selectedSongArtist = self.songList[song]["artist"]
+            self.currentGameNumberOfPlayers = self.getReadyPlayers()
+            choices = self.getRandomSongs()
+            controlCounter = 0
+            print("A enviar música para " + str(self.currentGameNumberOfPlayers) + " players")
+            Sender(self.ip, self.port, fileToSend, self.mCastSocket)
 
-        while controlCounter < self.currentGameNumberOfPlayers:
-            data, addr = self.controlSocket.recvfrom(self.buffer)
-            if data.decode() == "song-ok":
-                controlCounter += 1
-            print("Música enviada para todos os players")
-        self.gameState = 1
-        print("Procedendo ao envio das hipóteses de escolha:")
-        controlCounter = 0
-        self.mCastSocket.sendto(pickle.dumps(choices) (self.mcastAddr, self.mcastPort))
-        
-        while controlCounter < self.currentGameNumberOfPlayers:
-            data, addr = self.controlSocket.recvfrom(self.buffer)
-            if data.decode() == "choices-ok":
-                controlCounter += 1
-                print("Hipóteses de escolha enviadas para todos os players")
-        controlCounter = 0
-        
-        self.mCastSocket.sendto(bytes("game-start", (self.mcastAddr, self.mcastPort)))
-        while controlCounter < self.currentGameNumberOfPlayers:
-            data, addr = self.controlSocket.recvfrom(self.buffer)
-            if data.decode() == "game-start-ok":
-                controlCounter += 1
-                print("Jogo iniciado")
-        results = dict()
-        while controlCounter < self.currentGameNumberOfPlayers:
-            data, addr = self.controlSocket.recvfrom(self.buffer)
-            if data.split('-')[0] == 'choice':
-                results[addr]["escolha"] = data.split('-')[1]
-                results[addr]["tempo"] = data.split('-')[2]
-                controlCounter += 1
-                print("Escolha recebida")
-                self.controlSocket.sendto(bytes("choice-ok", addr))
-        print("Resultados Todos Recebidos:")
-        print(results)
+            while controlCounter < self.currentGameNumberOfPlayers:
+                data, addr = self.controlSocket.recvfrom(self.buffer)
+                if data.decode() == "song-ok":
+                    controlCounter += 1
+                print("Música enviada para todos os players")
+            print("Procedendo ao envio das hipóteses de escolha:")
+            controlCounter = 0
+            self.mCastSocket.sendto(pickle.dumps(choices) (self.mcastAddr, self.mcastPort))
+            
+            while controlCounter < self.currentGameNumberOfPlayers:
+                data, addr = self.controlSocket.recvfrom(self.buffer)
+                if data.decode() == "choices-ok":
+                    controlCounter += 1
+                    print("Hipóteses de escolha enviadas para todos os players")
+            controlCounter = 0
+            
+            self.mCastSocket.sendto(bytes("game-start", (self.mcastAddr, self.mcastPort)))
+            while controlCounter < self.currentGameNumberOfPlayers:
+                data, addr = self.controlSocket.recvfrom(self.buffer)
+                if data.decode() == "game-start-ok":
+                    controlCounter += 1
+                    print("Jogo iniciado")
+            results = dict()
+            while controlCounter < self.currentGameNumberOfPlayers:
+                data, addr = self.controlSocket.recvfrom(self.buffer)
+                if data.split('-')[0] == 'choice':
+                    results[addr]["escolha"] = data.split('-')[1]
+                    results[addr]["tempo"] = data.split('-')[2]
+                    controlCounter += 1
+                    print("Escolha recebida")
+                    self.controlSocket.sendto(bytes("choice-ok", addr))
+            print("Resultados Todos Recebidos:")
+            print(results)
 
-        winner = self.getWinner(results, selectedSongName)
-        print("O vencedor foi: " + winner)
-        self.mCastSocket.sendto(bytes("winner-" + winner[0].encode() + "-" + winner[1].encode(), (self.mcastAddr, self.mcastPort)))
-        print("jogo terminado")
-        self.gameState = 0
-        self.currentGameNumberOfPlayers = 0
-        global totalReadyPlayers 
-        totalReadyPlayers = 0
+            winner = self.getWinner(results, selectedSongName)
+            print("O vencedor foi: " + winner)
+            self.mCastSocket.sendto(bytes("winner-" + winner[0].encode() + "-" + winner[1].encode(), (self.mcastAddr, self.mcastPort)))
+            print("jogo terminado")
+            self.currentGameNumberOfPlayers = 0
+            global totalReadyPlayers 
+            totalReadyPlayers = 0
 
     def getReadyPlayers(self):
         readyPlayers = 0

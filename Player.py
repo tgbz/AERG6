@@ -1,4 +1,4 @@
-import pyaudio, wave, threading, time
+import pyaudio, wave, threading, time, sys
 
 
 class Player(threading.Thread):
@@ -26,6 +26,12 @@ class Player(threading.Thread):
         self.wf.close()
         self.p.terminate()
 
+def main():
+    file = sys.argv[1]
+    Player(file).run()
 
+if __name__ == '__main__':
+    main()
+    
 
 

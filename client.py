@@ -74,43 +74,41 @@ class GameHandler(threading.Thread):
         
     def run(self):
         global gameState
-        while True:
-            while gameState == 0:
-                time.sleep(1)
-            self.mainSocket.bind(('', self.mainPort))
-            self.controlSocket.bind(('', self.controlPort))
-            rec = Receiver.Receiver(mcastAddr,self.mainPort,self.mainSocket,self.buffer).start()
-            res = rec.worker()
-            if res:
-                self.controlSocket.sendto(b'song-ok' + self.mCastAddr, rec.addr)
-                while True:
-                    data, addr = self.controlSocket.recvfrom(self.buffer)
-                    self.choices = pickle.loads(data)
-                    if data.split('-')[0] == 'choices':
-                        self.controlSocket.sendto(b'choices-ok' + self.mCastAddr, addr)
-                    elif data.split('-')[0] == 'game-start':
-                        self.controlSocket.sendto(b'game-start-ok' + self.mCastAddr, addr)
-                        break
-            else:
-                self.controlSocket.sendto(b'song-not-ok' + self.mCastAddr, rec.addr)
-            self.timeStart = time.time()
-            p = Player(res)
-            p.start()
-            self.displayChoices()
-            selected = input("Enter your choice: ")
-            choice = self.choices[selected-1]
-            self.timeEnd = time.time()
-            self.finalTime = self.timeEnd - self.timeStart
-            print("You selected: " + choice)
-            print("final time: " + str(self.finalTime))
-            self.controlSocket.sendto(b'choice-' + choice.encode() + '-' + str(self.finalTime), addr)
-            data, addr = self.controlSocket.recvfrom(self.buffer)
-            if data.split('-')[0] == 'choice-ok':
-                print("Choice ok!")
-            else:
-                print("Unknown message!")
-            print("gameOver!")
-            gameState = 0
+        print("Waiting for Game...")
+        self.mainSocket.bind(('', self.mainPort))
+        self.controlSocket.bind(('', self.controlPort))
+        rec = Receiver.Receiver(mcastAddr,self.mainPort,self.mainSocket,self.buffer).start()
+        res = rec.worker()
+        if res:
+            self.controlSocket.sendto(b'song-ok' + self.mCastAddr, rec.addr)
+            while True:
+                data, addr = self.controlSocket.recvfrom(self.buffer)
+                self.choices = pickle.loads(data)
+                if data.split('-')[0] == 'choices':
+                    self.controlSocket.sendto(b'choices-ok' + self.mCastAddr, addr)
+                elif data.split('-')[0] == 'game-start':
+                    self.controlSocket.sendto(b'game-start-ok' + self.mCastAddr, addr)
+                    break
+        else:
+            self.controlSocket.sendto(b'song-not-ok' + self.mCastAddr, rec.addr)
+        self.timeStart = time.time()
+        p = Player(res)
+        p.start()
+        self.displayChoices()
+        selected = input("Enter your choice: ")
+        choice = self.choices[selected-1]
+        self.timeEnd = time.time()
+        self.finalTime = self.timeEnd - self.timeStart
+        print("You selected: " + choice)
+        print("final time: " + str(self.finalTime))
+        self.controlSocket.sendto(b'choice-' + choice.encode() + '-' + str(self.finalTime), addr)
+        data, addr = self.controlSocket.recvfrom(self.buffer)
+        if data.split('-')[0] == 'choice-ok':
+            print("Choice ok!")
+        else:
+            print("Unknown message!")
+        print("gameOver!")
+        gameState = 0
     
     
 def main():
