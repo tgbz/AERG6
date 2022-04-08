@@ -77,7 +77,7 @@ class GameHandler(threading.Thread):
         print("Waiting for Game...")
         self.mainSocket.bind(('', self.mainPort))
         self.controlSocket.bind(('', self.controlPort))
-        rec = Receiver.Receiver(mcastAddr,self.mainPort,self.mainSocket,self.buffer).start()
+        rec = Receiver.Receiver(mcastAddr,self.mainPort,self.mainSocket,'file.wav').start()
         res = rec.worker()
         if res:
             self.controlSocket.sendto(b'song-ok' + self.mCastAddr, rec.addr)

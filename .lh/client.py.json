@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 8,
+            "activePatchIndex": 9,
             "patches": [
                 {
                     "date": 1649326205468,
@@ -40,6 +40,10 @@
                 {
                     "date": 1649426052411,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -35,9 +35,9 @@\n             print(\"Ready ok!\")\n         else:\n             print(\"message:\" +str(data))\n             print(\"Unknown message!\")\n-        while True:\n+'''         while True:\n             time.sleep(5)\n             self.controlSocket.sendto('control-'.encode(), (self.serverAddr, self.controlPort))\n             data, addr = self.controlSocket.recvfrom(self.buffer)\n             data = data.decode()\n@@ -46,9 +46,9 @@\n                 time.sleep(5)\n             else:\n                 print(\"message:\" +str(data)) \n                 print(\"Unknown message!\")\n-                break\n+                break '''\n         \n class GameHandler(threading.Thread):\n     def __init__(self, serverAddr):\n         threading.Thread.__init__(self)\n"
+                },
+                {
+                    "date": 1649426268485,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -76,9 +76,9 @@\n         global gameState\n         print(\"Waiting for Game...\")\n         self.mainSocket.bind(('', self.mainPort))\n         self.controlSocket.bind(('', self.controlPort))\n-        rec = Receiver.Receiver(mcastAddr,self.mainPort,self.mainSocket,self.buffer).start()\n+        rec = Receiver.Receiver(mcastAddr,self.mainPort,self.mainSocket,'file.wav').start()\n         res = rec.worker()\n         if res:\n             self.controlSocket.sendto(b'song-ok' + self.mCastAddr, rec.addr)\n             while True:\n"
                 }
             ],
             "date": 1649326205468,
