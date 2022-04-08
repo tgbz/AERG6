@@ -140,8 +140,8 @@ class gameHandler(threading.Thread):
             choices = self.getRandomSongs()
             controlCounter = 0
             print("A enviar música para " + str(self.currentGameNumberOfPlayers) + " players")
-            Sender(self.mcastAddr, self.mcastPort, fileToSend, self.mCastSocket)
-
+            sen = Sender.Sender(self.mcastAddr, self.mcastPort, fileToSend, self.mCastSocket)
+            sen.start()
             while controlCounter < self.currentGameNumberOfPlayers:
                 data, addr = self.controlSocket.recvfrom(self.buffer)
                 if data.decode() == "song-ok":
