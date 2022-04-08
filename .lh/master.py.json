@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 11,
+            "activePatchIndex": 12,
             "patches": [
                 {
                     "date": 1649321125937,
@@ -52,6 +52,10 @@
                 {
                     "date": 1649425934123,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -67,30 +67,30 @@\n             \n             elif data.split('-')[0] == \"ready\":\n                 #verificar se o addr esta presente no dicionario\n                 if addr[0] in clients.keys():\n-                    if clients[addr[0]][\"ready\"] == 0:\n-                        clients[addr[0]][\"ready\"] = 1\n-                        self.socket.sendto(bytes(str(\"ready-ack-\" + str(addr[0])).encode()), addr)\n+                    if clients[addr][\"ready\"] == 0:\n+                        clients[addr][\"ready\"] = 1\n+                        self.socket.sendto(bytes(str(\"ready-ack-\" + str(addr).encode()), addr)\n                         totalReadyPlayers += 1\n                     else:\n                         self.socket.sendto(bytes(str(\"Cliente ja esta pronto\" + addr.encode())), addr)\n                 else:\n-                    self.socket.sendto(bytes(str(\"Cliente nao encontrado\" + str(addr[0])).encode()), addr)\n+                    self.socket.sendto(bytes(str(\"Cliente nao encontrado\" + str(addr)).encode()), addr)\n             elif data.split('-')[0] == \"control\":\n                 #verificar se o addr esta presente no dicionario, dar update ao atributo online para 1\n                 if addr in clients.keys():\n                     clients[addr[0]][\"online\"] = 1\n                     self.socket.sendto(bytes(str(\"control-ack\" + addr.encode())), addr)\n                 else:\n-                    self.socket.sendto(bytes(str(\"Cliente nao encontrado\" + str(addr[0])).encode()), addr)\n+                    self.socket.sendto(bytes(str(\"Cliente nao encontrado\" + str(addr)).encode()), addr)\n             elif data.split('-')[0] == \"disconnect\":\n                 #verificar se o addr esta presente no dicionario, dar update ao atributo online para 0\n                 if addr in clients.keys():\n                     clients[addr[0]]['online'] = 0\n                     self.socket.sendto(bytes(\"disconnect-ack\" + addr.encode()), addr)\n                 else:\n-                    self.socket.sendto(bytes(\"Cliente nao encontrado\" + str(addr[0]).encode()), addr)\n+                    self.socket.sendto(bytes(\"Cliente nao encontrado\" + str(addr).encode()), addr)\n             elif data.split('-')[0] == \"ingame\":\n                 #verificar se o addr esta presente no dicionario, dar update ao atributo online para 1\n                 if addr in clients.keys():\n                     clients[addr[0]][\"ingame\"] = 1\n"
+                },
+                {
+                    "date": 1649425996443,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -69,9 +69,9 @@\n                 #verificar se o addr esta presente no dicionario\n                 if addr[0] in clients.keys():\n                     if clients[addr][\"ready\"] == 0:\n                         clients[addr][\"ready\"] = 1\n-                        self.socket.sendto(bytes(str(\"ready-ack-\" + str(addr).encode()), addr)\n+                        self.socket.sendto(bytes(str(\"ready-ack-\" + str(addr).encode())), addr)\n                         totalReadyPlayers += 1\n                     else:\n                         self.socket.sendto(bytes(str(\"Cliente ja esta pronto\" + addr.encode())), addr)\n                 else:\n"
                 }
             ],
             "date": 1649321125937,

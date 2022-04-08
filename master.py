@@ -70,7 +70,7 @@ class controlHandler(threading.Thread):
                 if addr[0] in clients.keys():
                     if clients[addr]["ready"] == 0:
                         clients[addr]["ready"] = 1
-                        self.socket.sendto(bytes(str("ready-ack-" + str(addr).encode()), addr)
+                        self.socket.sendto(bytes(str("ready-ack-" + str(addr).encode())), addr)
                         totalReadyPlayers += 1
                     else:
                         self.socket.sendto(bytes(str("Cliente ja esta pronto" + addr.encode())), addr)
