@@ -51,7 +51,7 @@ class controlHandler(threading.Thread):
         print("In Control Handler\n")
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind(('', self.port))
-        self.mcastAddr = "FF02::1"
+        self.mcastAddr = "FF00::1"
         while True:
             data, addr = self.socket.recvfrom(self.buffer)
             data = data.decode()
