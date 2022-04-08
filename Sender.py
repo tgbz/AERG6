@@ -4,6 +4,7 @@ import socket, time, threading
 
 class Sender(threading.Thread):
     def __init__(self, ip, port, filepath, socket):
+        threading.Thread.__init__(self)
         self.ip = ip
         self.port = port
         self.filepath = filepath
