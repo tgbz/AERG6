@@ -9,8 +9,6 @@ class Receiver():
         self.s = socket
         self.f=open(filepath,'wb')
     def worker(self):
-        self.s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
-        self.s.bind((self.ip, self.port))
         self.s.settimeout(self.timeout)
         data,addr = self.s.recvfrom(self.buffer)
         if data:
