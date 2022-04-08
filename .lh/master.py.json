@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 21,
+            "activePatchIndex": 23,
             "patches": [
                 {
                     "date": 1649321125937,
@@ -92,6 +92,14 @@
                 {
                     "date": 1649426790907,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -67,9 +67,9 @@\n             \n             elif data.split('-')[0] == \"ready\":\n                 print(\"Ready Recebio \\n\\n\")\n                 #verificar se o addr esta presente no dicionario\n-                if addr[0] in clients.keys():\n+                if addr in clients.keys():\n                     if clients[addr][\"ready\"] == 0:\n                         print(\"A adicionar ready a um cliente\")\n                         clients[addr][\"ready\"] = 1\n                         self.socket.sendto(bytes(str(\"ready-ack-\" + str(addr).encode())), addr)\n"
+                },
+                {
+                    "date": 1649426857374,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -71,9 +71,9 @@\n                 if addr in clients.keys():\n                     if clients[addr][\"ready\"] == 0:\n                         print(\"A adicionar ready a um cliente\")\n                         clients[addr][\"ready\"] = 1\n-                        self.socket.sendto(bytes(str(\"ready-ack-\" + str(addr).encode())), addr)\n+                        self.socket.sendto(bytes(\"ready-ack-\" + str(addr)).encode()), addr)\n                         print(\"A incrementar numero total de players\")\n                         totalReadyPlayers += 1\n                         print(\"Numero total de players à espera: \" + str(totalReadyPlayers))\n                     else:\n"
+                },
+                {
+                    "date": 1649426886697,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -71,9 +71,9 @@\n                 if addr in clients.keys():\n                     if clients[addr][\"ready\"] == 0:\n                         print(\"A adicionar ready a um cliente\")\n                         clients[addr][\"ready\"] = 1\n-                        self.socket.sendto(bytes(\"ready-ack-\" + str(addr)).encode()), addr)\n+                        self.socket.sendto(bytes((\"ready-ack-\" + str(addr)).encode()), addr)\n                         print(\"A incrementar numero total de players\")\n                         totalReadyPlayers += 1\n                         print(\"Numero total de players à espera: \" + str(totalReadyPlayers))\n                     else:\n"
                 }
             ],
             "date": 1649321125937,
