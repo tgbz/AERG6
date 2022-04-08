@@ -203,10 +203,10 @@ class gameHandler(threading.Thread):
         global totalReadyPlayers
         global maxPlayersForGame
         while True:
-            print("Waiting to test game")
+            print("À espera de jogadores suficientes")
             if totalReadyPlayers == maxPlayersForGame:
                 self.generateGame()
-            time.sleep(1)
+            time.sleep(5)
     
 def main():
     controlT = controlHandler()
