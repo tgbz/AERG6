@@ -1,6 +1,6 @@
 import socket, threading, json, Receiver, pickle, time, sys, Player
 
-mcastAddr = ""
+mCastAddr = ""
 gameState = 0
 
 class loginStatusHandler(threading.Thread):
@@ -15,6 +15,7 @@ class loginStatusHandler(threading.Thread):
 
         
     def run(self):
+        global mCastAddr
         self.controlSocket.bind(('', self.controlPort))
         self.controlSocket.sendto('hello-'.encode(), (self.serverAddr, self.controlPort))
     
@@ -77,8 +78,8 @@ class GameHandler(threading.Thread):
         print("Waiting for Game...")
         self.mainSocket.bind(('', self.mainPort))
         self.controlSocket.bind(('', self.controlPort))
-        print(str(mcastAddr))
-        rec = Receiver.Receiver(mcastAddr,self.mainPort,self.mainSocket,'file.wav')
+        print(str(mCastAddr))
+        rec = Receiver.Receiver(mCastAddr,self.mainPort,self.mainSocket,'file.wav')
         res = rec.worker()
         if res:
             self.controlSocket.sendto(b'song-ok' + self.mCastAddr, rec.addr)
