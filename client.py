@@ -36,7 +36,7 @@ class loginStatusHandler(threading.Thread):
         else:
             print("message:" +str(data))
             print("Unknown message!")
-        while True:
+'''         while True:
             time.sleep(5)
             self.controlSocket.sendto('control-'.encode(), (self.serverAddr, self.controlPort))
             data, addr = self.controlSocket.recvfrom(self.buffer)
@@ -47,7 +47,7 @@ class loginStatusHandler(threading.Thread):
             else:
                 print("message:" +str(data)) 
                 print("Unknown message!")
-                break
+                break '''
         
 class GameHandler(threading.Thread):
     def __init__(self, serverAddr):

@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 12,
+            "activePatchIndex": 13,
             "patches": [
                 {
                     "date": 1649321125937,
@@ -56,6 +56,10 @@
                 {
                     "date": 1649425996443,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -69,9 +69,9 @@\n                 #verificar se o addr esta presente no dicionario\n                 if addr[0] in clients.keys():\n                     if clients[addr][\"ready\"] == 0:\n                         clients[addr][\"ready\"] = 1\n-                        self.socket.sendto(bytes(str(\"ready-ack-\" + str(addr).encode()), addr)\n+                        self.socket.sendto(bytes(str(\"ready-ack-\" + str(addr).encode())), addr)\n                         totalReadyPlayers += 1\n                     else:\n                         self.socket.sendto(bytes(str(\"Cliente ja esta pronto\" + addr.encode())), addr)\n                 else:\n"
+                },
+                {
+                    "date": 1649426037390,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -58,9 +58,9 @@\n             \n             if data.split('-')[0] == \"hello\":\n                 #verificar se o addr esta presente no dicionario\n                 if addr not in clients.keys():\n-                    self.addClient(addr[0], addr[1])\n+                    self.addClient(addr, addr[1])\n                     self.socket.sendto(bytes(str(\"hello-ack-\"+ str(self.mcastAddr)).encode()), addr)\n                 else:\n                     self.socket.sendto(bytes(\"Cliente ja existente\" + addr.encode()), addr)\n                 print(clients)\n"
                 }
             ],
             "date": 1649321125937,

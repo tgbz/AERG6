@@ -59,7 +59,7 @@ class controlHandler(threading.Thread):
             if data.split('-')[0] == "hello":
                 #verificar se o addr esta presente no dicionario
                 if addr not in clients.keys():
-                    self.addClient(addr[0], addr[1])
+                    self.addClient(addr, addr[1])
                     self.socket.sendto(bytes(str("hello-ack-"+ str(self.mcastAddr)).encode()), addr)
                 else:
                     self.socket.sendto(bytes("Cliente ja existente" + addr.encode()), addr)
