@@ -66,8 +66,9 @@ class controlHandler(threading.Thread):
                 print(clients)
             
             elif data.split('-')[0] == "ready":
+                print("Ready Recebio \n\n")
                 #verificar se o addr esta presente no dicionario
-                if addr[0] in clients.keys():
+                if addr in clients.keys():
                     if clients[addr]["ready"] == 0:
                         print("A adicionar ready a um cliente")
                         clients[addr]["ready"] = 1
