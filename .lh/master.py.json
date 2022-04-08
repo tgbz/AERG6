@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 24,
+            "activePatchIndex": 26,
             "patches": [
                 {
                     "date": 1649321125937,
@@ -104,6 +104,14 @@
                 {
                     "date": 1649427003021,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -129,8 +129,9 @@\n     def generateGame(self):\n   \n         while True:\n             song = random.randint(1,5)\n+            print(\"Musica escolhida\" + str(song))\n             fileToSend = self.songList[song][\"filepath\"]\n             selectedSongName = self.songList[song][\"title\"]\n             selectedSongArtist = self.songList[song][\"artist\"]\n             self.currentGameNumberOfPlayers = self.getReadyPlayers()\n"
+                },
+                {
+                    "date": 1649427040914,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -130,8 +130,9 @@\n   \n         while True:\n             song = random.randint(1,5)\n             print(\"Musica escolhida\" + str(song))\n+            print(songList)\n             fileToSend = self.songList[song][\"filepath\"]\n             selectedSongName = self.songList[song][\"title\"]\n             selectedSongArtist = self.songList[song][\"artist\"]\n             self.currentGameNumberOfPlayers = self.getReadyPlayers()\n"
+                },
+                {
+                    "date": 1649427056363,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -130,9 +130,9 @@\n   \n         while True:\n             song = random.randint(1,5)\n             print(\"Musica escolhida\" + str(song))\n-            print(songList)\n+            print(self.songList)\n             fileToSend = self.songList[song][\"filepath\"]\n             selectedSongName = self.songList[song][\"title\"]\n             selectedSongArtist = self.songList[song][\"artist\"]\n             self.currentGameNumberOfPlayers = self.getReadyPlayers()\n"
                 }
             ],
             "date": 1649321125937,
