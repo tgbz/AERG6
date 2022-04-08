@@ -82,7 +82,7 @@ class controlHandler(threading.Thread):
                     clients[addr[0]]["online"] = 1
                     self.socket.sendto(bytes(str("control-ack" + addr.encode())), addr)
                 else:
-                    self.socket.sendto(bytes(str("Cliente nao encontrado" + str(addr[0]).encode())), addr)
+                    self.socket.sendto(bytes(str("Cliente nao encontrado" + str(addr[0])).encode()), addr)
             elif data.split('-')[0] == "disconnect":
                 #verificar se o addr esta presente no dicionario, dar update ao atributo online para 0
                 if addr in clients.keys():
