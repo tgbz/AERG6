@@ -129,7 +129,7 @@ class gameHandler(threading.Thread):
     def generateGame(self):
   
         while True:
-            song = random.randint(1,5)
+            song = str(random.randint(1,5))
             print("Musica escolhida" + str(song))
             print(self.songList)
             print("Atributos da musica escolhida" + str(self.songList[song]))

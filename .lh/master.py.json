@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 28,
+            "activePatchIndex": 29,
             "patches": [
                 {
                     "date": 1649321125937,
@@ -120,6 +120,10 @@
                 {
                     "date": 1649427193455,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -131,8 +131,9 @@\n         while True:\n             song = random.randint(1,5)\n             print(\"Musica escolhida\" + str(song))\n             print(self.songList)\n+            print(\"Atributos da musica escolhida\" + str(self.songList[song]))\n             fileToSend = self.songList[song][\"filePath\"]\n             selectedSongName = self.songList[song][\"title\"]\n             selectedSongArtist = self.songList[song][\"artist\"]\n             self.currentGameNumberOfPlayers = self.getReadyPlayers()\n"
+                },
+                {
+                    "date": 1649427256552,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -128,9 +128,9 @@\n \n     def generateGame(self):\n   \n         while True:\n-            song = random.randint(1,5)\n+            song = str(random.randint(1,5))\n             print(\"Musica escolhida\" + str(song))\n             print(self.songList)\n             print(\"Atributos da musica escolhida\" + str(self.songList[song]))\n             fileToSend = self.songList[song][\"filePath\"]\n"
                 }
             ],
             "date": 1649321125937,
