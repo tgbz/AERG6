@@ -1,4 +1,4 @@
-import socket, threading, json, random, Sender, pickle, time
+import socket, threading, json, random, stage1.Sender as Sender, pickle, time
 from unicodedata import name 
 
 

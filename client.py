@@ -1,4 +1,4 @@
-import socket, threading, json, Receiver, pickle, time, sys, Player
+import socket, threading, json, stage1.Receiver as Receiver, pickle, time, sys, stage1.Player as Player
 
 mCastAddr = ""
 gameState = 0

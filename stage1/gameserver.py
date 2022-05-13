@@ -1,4 +1,4 @@
-import socket, threading, time, sys, pickle, random, time, sys, json
+import socket, threading, time, sys, pickle, random, time, sys, json, Sender
 
 
 
@@ -7,10 +7,26 @@ maxPlayersForGame = 2
 totalReadyPlayers = 0
 maxGameRounds = 3
 
+""" 
+clients : {
+    <client_id> : {
+        port : <port>,
+        ready : <bool>,
+        ingame : <bool>,
+        online : <bool>,
+    },
+    <client_id> : {
+        port : <port>,
+        ready : <bool>,
+        ingame : <bool>,
+        online : <bool>,
+    },
+    ....
+"""
+
 class networkStatusHandler(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-        self.controlPort = 8080
         self.hostName = socket.gethostname()
         self.buffer = 2048
         self.mcastAddr = "FF01:0:0:0:0:0:0:1"
@@ -74,7 +90,15 @@ class networkStatusHandler(threading.Thread):
             data, addr = self.socket.recvfrom(self.buffer)
             data = data.decode()
             #Cases para a receção de dados:
-            
+            """
+            1 - Cliente envia mensagem new-addr
+            2 - Servidor responde com hello-addr-mcastAddr
+            3 - Cliente envia mensagem de confirmação de mcastAddr
+            4 - Servidor envia mensagem com ready?
+            5 - Cliente responde com readyOk
+            7 - Servidor entra em loop de hearbeat (e cliente associado)
+            8 - Cliente envia mensagem de disconnect opcional quando quiser.
+            """
             if data.split('-')[0]=="new":
                 print("Nova conexao de " + str(data.split('-')[1]))
                 if self.addClient(addr,addr[1])==1:
@@ -96,6 +120,7 @@ class networkStatusHandler(threading.Thread):
             elif data.split('-')[0]=="readyOk":
                 print("cliente " + str(addr[0]) + " está pronto")
                 print("Estado actualizado dos clientes")
+                self.setClientReady(addr[0])
             
             elif data.split('-')[0]=="disconnect":
                 print("A remover cliente " + str(addr[0]))
@@ -161,13 +186,112 @@ class Game(threading.Thread):
         self.mcastPort = 8888
         self.mcastAddr = "FF02::1"
         self.buffer = 2048
+        self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+        self.controlPort = 8081
+        self.controlSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.controlSocket.bind(('', self.controlPort))
         
         self.currentGameNumberOfPlayers = 0
-        
-        
-    def generateGame(self):
-        song = str(random.randint(1,len(self.songList)))
-        
-    def generateOptions(self):
+    
+    #Função que escolhe ids de músicas aleatórias da base da dados disponível   
+    def chooseSongs(self):
+        global maxGameRounds
         options = []
-        maxOptions = 
+        maxOptions = maxGameRounds
+        while len(options)<maxOptions:
+            option = str(random.randint(1,len(self.songList)))
+            if option not in options:
+                options.append(option)
+        return options
+    
+    """Funcao que escolhe para cada elemento da lista de opções de músicas, vai à base de dados e escolhe 3 outras músicas aleatórias, consistindo um dicionário de escolhas nos seguinte formato:
+        rounds = {
+                    "1": {
+                        "1": "<artist>-<song>",   
+                        "2": "<artist>-<song>",
+                        "3": "<artist>-<song>",
+                        "4": "<artist>-<song>",
+                        },
+                    "2": {
+                        "1": "<artist>-<song>",
+                        "2": "<artist>-<song>",
+                        "3": "<artist>-<song>",
+                        "4": "<artist>-<song>",
+                        },
+                        ...
+                    }
+    """
+    def generateOptions(self, options, numberOfRounds):
+        rounds = {}
+        for i in range(numberOfRounds):
+            rounds[str(i+1)] = {}
+            for j in range(4):
+                rounds[str(i+1)][str(j+1)] = self.songList[options[i]]["artist"] + "-" + self.songList[options[i]]["song"]
+                options.remove(options[i])
+                for k in range(3):
+                    option = str(random.randint(1,len(self.songList)))
+                    if option not in options:
+                        options.append(option)
+                    rounds[str(i+1)][str(j+1+k+1)] = self.songList[option]["artist"] + "-" + self.songList[option]["song"]
+        return rounds
+    
+    def generateGame(self):
+        global totalReadyPlayers
+        gameSongs = self.chooseOptions()
+        print("Músicas escolhidas:")
+        for option in gameSongs:
+            print(self.songList[option]["title"])
+        print("Opções de jogo:")
+        rounds = self.generateOptions(gameSongs, maxGameRounds)
+        print(rounds)
+        filePaths = []
+        recvCounter = 0
+        for option in gameSongs:
+            #get all the filePaths of the songs
+            filePaths.append(self.songList[option]["filePath"])
+        print("Procedendo ao envio das músicas...")
+        for i in range(len(filePaths)):
+            print("A enviar música " + str(i+1) + " de " + str(len(filePaths)))
+            sen = Sender.Sender(self.mcastAddr,self.mcastPort,filePaths[i],self.mCastSocket)
+            while recvCounter <= totalReadyPlayers:
+                data, addr = self.controlSocket.recvfrom(self.buffer)
+                data = data.decode()
+                if data.split('-')[0] == "songReceiveOk":
+                    recvCounter+=1
+                    print("Música " + str(i+1) + " enviada e confirmada")
+            recvCounter = 0
+        print("Músicas enviadas")
+        print("A enviar opções de jogo...")
+        sen = Sender.Sender(self.mcastAddr,self.mcastPort,json.dumps(rounds),self.mCastSocket)
+        while recvCounter <= totalReadyPlayers:
+            data, addr = self.controlSocket.recvfrom(self.buffer)
+            data = data.decode()
+            if data.split('-')[0] == "roundsReceiveOk":
+                recvCounter+=1
+                print("Opções de jogo enviadas e confirmadas")
+        recvCounter = 0
+        print("Opções de jogo enviadas")
+        print("A iniciar o jogo...")
+        self.currentGameNumberOfPlayers = totalReadyPlayers
+        self.mCastSocket.sendto("gameStart".encode(),(self.mcastAddr,self.mcastPort))
+        while recvCounter <= self.currentGameNumberOfPlayers:
+            data, addr = self.controlSocket.recvfrom(self.buffer)
+            data = data.decode()
+            if data.split('-')[0] == "gameStartOk":
+                recvCounter+=1
+                print("Jogo iniciado")
+        recvCounter = 0
+        print("À espera de submissão das músicas...")
+        playersAnswers = dict()
+        """
+        playersAnswers = {
+                        <playerId>: {
+                            <round>: { "choice": "0", "time": "0.0" },
+                            <round>: { "choice": "0", "time": "0.0" },
+                            <round>:    ...
+                            }
+        respostaplayer : <escolha>-<tempo>-<escolha>-<tempo>-<escolha>-<tempo> (nrounds)
+        """
+    
+        
+        

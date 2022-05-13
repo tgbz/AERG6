@@ -1,4 +1,4 @@
-import time, struct, socket, sys, threading, Receiver, player, pickle
+import time, struct, socket, sys, threading, stage1.Receiver as Receiver, player, pickle
 
 mCastAddr = ""
   

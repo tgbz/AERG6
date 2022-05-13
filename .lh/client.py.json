@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 14,
+            "activePatchIndex": 15,
             "patches": [
                 {
                     "date": 1649326205468,
@@ -64,6 +64,10 @@
                 {
                     "date": 1649428825772,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -77,10 +77,10 @@\n         global gameState\n         print(\"Waiting for Game...\")\n         self.mainSocket.bind(('', self.mainPort))\n         self.controlSocket.bind(('', self.controlPort))\n-        print(str(mcastAddr))\n-        rec = Receiver.Receiver(mcastAddr,self.mainPort,self.mainSocket,'file.wav')\n+        print(str(mCastAddr))\n+        rec = Receiver.Receiver(mCastAddr,self.mainPort,self.mainSocket,'file.wav')\n         res = rec.worker()\n         if res:\n             self.controlSocket.sendto(b'song-ok' + self.mCastAddr, rec.addr)\n             while True:\n"
+                },
+                {
+                    "date": 1652465672213,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,5 +1,5 @@\n-import socket, threading, json, Receiver, pickle, time, sys, Player\n+import socket, threading, json, stage1.Receiver as Receiver, pickle, time, sys, stage1.Player as Player\n \n mCastAddr = \"\"\n gameState = 0\n \n"
                 }
             ],
             "date": 1649326205468,

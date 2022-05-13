@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 36,
+            "activePatchIndex": 37,
             "patches": [
                 {
                     "date": 1649321125937,
@@ -152,6 +152,10 @@
                 {
                     "date": 1649429893518,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -50,9 +50,9 @@\n         global totalReadyPlayers\n         print(\"In Control Handler\\n\")\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind(('', self.port))\n-        self.mcastAddr = \"FF00::1\"\n+        self.mcastAddr = \"FF01:0:0:0:0:0:0:1\"\n         while True:\n             data, addr = self.socket.recvfrom(self.buffer)\n             data = data.decode()\n             \n"
+                },
+                {
+                    "date": 1652465672218,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,5 +1,5 @@\n-import socket, threading,  json, random, Sender, pickle, time, sys\n+import socket, threading,  json, random, stage1.Sender as Sender, pickle, time, sys\n \n ##Global Vars\n clients = dict()\n maxPlayersForGame = 2\n"
                 }
             ],
             "date": 1649321125937,
