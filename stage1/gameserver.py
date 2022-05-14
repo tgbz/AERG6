@@ -108,7 +108,7 @@ class networkStatusHandler(threading.Thread):
                     print("A enviar confirmação para os clientes:")
                     self.socket.sendto(bytes(("hello-%s-%s"),addr[0],self.mcastAddr),addr)
                     print("Endereço Multicast Enviado")
-            elif data.split('-')[0]=="mcast-ok":
+            elif data.split('-')[0]=="mcast" and data.split('-')[1]=="ok":
                 #verificar se o cliente já está na lista de clientes
                 if clients[addr[0]] is not None:
                     print("confirmação de recepção de multicast recebida de " + str(addr[0]))
@@ -148,6 +148,7 @@ class hearbeatHandler(threading.Thread):
             if data.split('-')[0]=="heartbeat":
                 print("Heartbeat recebido de " + str(addr))
                 self.setClientOnline(addr[0])
+                self.socket.sendto(bytes(("heartbeatOk-%s"),addr),addr)
             time.sleep(10)
             #Verificar se há clientes offline
             for addr in clients.keys():
@@ -190,7 +191,7 @@ class Game(threading.Thread):
         self.controlPort = 8081
         self.controlSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.controlSocket.bind(('', self.controlPort))
-        
+        self.currentGamePlayers = []
         self.currentGameNumberOfPlayers = 0
     
     #Função que escolhe ids de músicas aleatórias da base da dados disponível   
@@ -202,10 +203,11 @@ class Game(threading.Thread):
             option = str(random.randint(1,len(self.songList)))
             if option not in options:
                 options.append(option)
-        return options
+        return options    
     
-    """Funcao que escolhe para cada elemento da lista de opções de músicas, vai à base de dados e escolhe 3 outras músicas aleatórias, consistindo um dicionário de escolhas nos seguinte formato:
-        rounds = {
+    """Função que recebe a lista de músicas escolhidas para o jogo (options),  vai buscar outras 3 opções para cada musica escolhida e coloca num dicionário no seguinte formato:
+    
+             = {
                     "1": {
                         "1": "<artist>-<song>",   
                         "2": "<artist>-<song>",
@@ -220,78 +222,176 @@ class Game(threading.Thread):
                         },
                         ...
                     }
+            O número de opções é sempre 4, e o número de rondas é igual ao maxGameRounds passado como argumento.
     """
-    def generateOptions(self, options, numberOfRounds):
-        rounds = {}
-        for i in range(numberOfRounds):
-            rounds[str(i+1)] = {}
-            for j in range(4):
-                rounds[str(i+1)][str(j+1)] = self.songList[options[i]]["artist"] + "-" + self.songList[options[i]]["song"]
-                options.remove(options[i])
-                for k in range(3):
-                    option = str(random.randint(1,len(self.songList)))
-                    if option not in options:
-                        options.append(option)
-                    rounds[str(i+1)][str(j+1+k+1)] = self.songList[option]["artist"] + "-" + self.songList[option]["song"]
-        return rounds
+    def getOptions(self,options,maxGameRounds):
+        optionsDict = {}
+        for i in range(0,len(options)):
+            optionsDict[str(i+1)] = {}
+            for j in range(1,5):
+                optionsDict[str(i+1)][str(j)] = self.songList[options[i]]["artist"] + "-" + self.songList[options[i]]["song"]
+        return optionsDict
+     
+    #Função respnsável por popular o dicionário de currentGamePlayers com os ids dos clientes com estado ready até um máximo de totalReadyPlayers
+    def getReadyPlayers(self,totalReadyPlayers):
+        global clients
+        readyPlayers = []
+        for addr in clients.keys():
+            if clients[addr]["ready"]==1:
+                readyPlayers.append(addr)
+        if len(readyPlayers)<totalReadyPlayers:
+            print("Número de jogadores insuficiente para iniciar o jogo")
+            return False
+        else:
+            return readyPlayers
+    
+    def multiSender(self,file,flag):
+        sen = Sender.Sender(self.mcastAddr,self.mcastPort,file,flag,self.mCastSocket)
+        sen.start()
+       
+    def controlMCast(self,controlString):
+        controlCounter = 0
+        while controlCounter < len(self.currentGamePlayers):
+            data, addr = self.controlSocket.recvfrom(self.buffer)
+            if data.decode() == controlString:
+                print("Jogador " + str(addr) + " confirmou a recepção do ficheiro")
+                controlCounter += 1
+        print("Todos os jogadores acusam rececao do ficheiro")
+    
+    """
+    Funcao responsável por iniciar um loop de recolha de respostas de jogadores através do controlSocket
+    
+    No final deverá ser preenchido um dicionario com o seguinte formato:
+
+        respostas = {
+                        "<player>":{ <ronda>: <opcao>-<tempo>,
+                                     <ronda>: <opcao>-<tempo>,
+                                     ....
+                                     
+                        }
+        }
+    
+    formatoDeEntrada:
+        answers$<opcao>$tempo>$<opcao>$<tempo>$<opcao>$<tempo>
+    """
+        
+    def getPlayersChoices(self,rounds):
+        playersAnswers = {}
+        controlCounter = 0
+        while controlCounter <= len(self.currentGamePlayers):
+            data, addr = self.controlSocket.recvfrom(self.buffer)
+            data = data.decode()
+            print("Escolhdas do jogador %s: %s recebidas" % (str(addr[0]),str(addr[1])))
+            controlCounter += 1
+            if addr[0] not in playersAnswers.keys():
+                playersAnswers[addr[0]] = {}
+                controlRoundsCounter = 0
+                splitsCounter = 1
+                while controlRoundsCounter < rounds:
+                    playersAnswers[addr[0]][controlRoundsCounter][data.split('$')[splitsCounter]] = data.split('$')[splitsCounter+1]
+                    splitsCounter += 2
+                    controlRoundsCounter += 1
+                return playersAnswers
+            else:
+                print("erro nas opções")
+                return None
+    
+    
+    #funcao que recebe uma lista de ids de musicas e vai a songlist procurar o titlo e adicionalo ao array songstittle
+    
+    def getSongsTittle(self,list):
+        songsTittle = []
+        for i in list:
+            songsTittle.append(self.songList[i]["song"])
+        return songsTittle
+    """
+    
+    Função de calculo de vençedor
+    Recebe as opções e as solucoes.
+    Vai a cada entrada no dicionario:
+          respostas = {
+                        "<player>":{ <ronda>: <opcao>-<tempo>,
+                                     <ronda>: <opcao>-<tempo>,
+                                     ....
+                        }
+        }
+    """
+    
+    def findWinner(self,answers,solutions):
+        winners = []
+        currentGamePlayers = []
+        for player in answers.keys():
+            currentGamePlayers.append(player)
+            for round in answers[player].keys():
+                if answers[player][round] == solutions[round-1]:
+                    timeSelected = answers[player][round].split('-')[1]
+                    temp = player
+                    for i in range(0,len(winners)):
+                        if not winners[i] or winners[i].split('-')[1]>=timeSelected:
+                            winners.append(player+"-"+timeSelected)
+        results = {}
+        for p in currentGamePlayers:
+            results[p]=0    
+        for winner in winners:
+            print("O vencedor da ronda " + str(round) + " é o jogador " + winner.split('-')[0])
+            results[p]=results[p]+1
+        print(results)
+        
+        #get the winner from results dictionary, which is the key with the highest value
+        winner = max(results, key=results.get)
+        print("O vencedor do jogo é o jogador " + winner)
+        return winner
+        
+    
     
     def generateGame(self):
         global totalReadyPlayers
-        gameSongs = self.chooseOptions()
-        print("Músicas escolhidas:")
-        for option in gameSongs:
-            print(self.songList[option]["title"])
-        print("Opções de jogo:")
-        rounds = self.generateOptions(gameSongs, maxGameRounds)
-        print(rounds)
-        filePaths = []
-        recvCounter = 0
-        for option in gameSongs:
-            #get all the filePaths of the songs
-            filePaths.append(self.songList[option]["filePath"])
-        print("Procedendo ao envio das músicas...")
-        for i in range(len(filePaths)):
-            print("A enviar música " + str(i+1) + " de " + str(len(filePaths)))
-            sen = Sender.Sender(self.mcastAddr,self.mcastPort,filePaths[i],self.mCastSocket)
-            while recvCounter <= totalReadyPlayers:
-                data, addr = self.controlSocket.recvfrom(self.buffer)
-                data = data.decode()
-                if data.split('-')[0] == "songReceiveOk":
-                    recvCounter+=1
-                    print("Música " + str(i+1) + " enviada e confirmada")
-            recvCounter = 0
-        print("Músicas enviadas")
-        print("A enviar opções de jogo...")
-        sen = Sender.Sender(self.mcastAddr,self.mcastPort,json.dumps(rounds),self.mCastSocket)
-        while recvCounter <= totalReadyPlayers:
-            data, addr = self.controlSocket.recvfrom(self.buffer)
-            data = data.decode()
-            if data.split('-')[0] == "roundsReceiveOk":
-                recvCounter+=1
-                print("Opções de jogo enviadas e confirmadas")
-        recvCounter = 0
-        print("Opções de jogo enviadas")
-        print("A iniciar o jogo...")
-        self.currentGameNumberOfPlayers = totalReadyPlayers
-        self.mCastSocket.sendto("gameStart".encode(),(self.mcastAddr,self.mcastPort))
-        while recvCounter <= self.currentGameNumberOfPlayers:
-            data, addr = self.controlSocket.recvfrom(self.buffer)
-            data = data.decode()
-            if data.split('-')[0] == "gameStartOk":
-                recvCounter+=1
-                print("Jogo iniciado")
-        recvCounter = 0
-        print("À espera de submissão das músicas...")
-        playersAnswers = dict()
-        """
-        playersAnswers = {
-                        <playerId>: {
-                            <round>: { "choice": "0", "time": "0.0" },
-                            <round>: { "choice": "0", "time": "0.0" },
-                            <round>:    ...
-                            }
-        respostaplayer : <escolha>-<tempo>-<escolha>-<tempo>-<escolha>-<tempo> (nrounds)
-        """
-    
-        
-        
+        global clients
+        self.getReadyPlayers()
+        self.currentGamePlayers = self.getReadyPlayers(totalReadyPlayers)
+        #Escolher <maxGameRounds> músicas aleatórias da base de dados para o jogo
+        selectedSongs = self.chooseSongs()
+        gameOptions = self.getOptions(selectedSongs,maxGameRounds)
+        controlCounter = 0
+        filepaths = []
+        filepaths = [self.songList[song]["filepath"] for song in selectedSongs]
+        self.multiSender("loading-",2)
+        for i in range(0,len(filepaths)):
+            self.multiSender(filepaths[i],0)
+            self.controlMCast("songOk")
+        print("Musicas enviadas")
+        self.multiSender(gameOptions,1)
+        self.controlMCast("optionsOk")
+        print("Opções Enviadas")
+        #Enviar mensagem de começo de jogo para todos os jogadores
+        self.multiSender("startGame",2)
+        self.controlMCast("gameStartOk")
+        answers = self.getPlayersChoices()
+        print("Escolhas recebidas:")
+        print(answers)
+        print("A determinar vencedor")
+        songsTittle = self.getSongsTittle(selectedSongs)
+        winner = self.findWinner(answers,songsTittle)
+        self.controlMCast("O vencedor é o jogador " + winner)
+        self.controlMCast("okEndgame")
+        self.totalReadyPlayers = 0
+        #set all players from this game to not ready
+        for player in self.currentGamePlayers:
+            for player in clients:
+                self.clients[player]["ready"] = False
+        self.currentGamePlayers = []
+    def run(self):
+        self.generateGame()
+
+
+def main():
+    #Inicializar as threads networkStatusHandler, heartbeatHandler e Game
+    networkStatusHandler = networkStatusHandler()
+    heartbeatHandler = heartbeatHandler()
+    gameHandler = Game()
+    networkStatusHandler.start()
+    heartbeatHandler.start()
+    gameHandler.start()
+
+if __name__ == "__main__":
+    main()
