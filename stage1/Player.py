@@ -1,4 +1,4 @@
-import PyAudio, wave, threading, time, sys
+import pyaudio, wave, threading, time, sys
 
 
 class Player(threading.Thread):

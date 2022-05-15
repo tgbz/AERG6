@@ -1,0 +1,17 @@
+
+""" 
+clients : {
+    <client_id> : {
+        port : <port>,
+        ready : <bool>,
+        ingame : <bool>,
+        online : <bool>,
+    },
+    <client_id> : {
+        port : <port>,
+        ready : <bool>,
+        ingame : <bool>,
+        online : <bool>,
+    },
+    ....
+"""

@@ -1,0 +1,30 @@
+{
+    "sourceFile": "stage1/mcastTest.py",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 3,
+            "patches": [
+                {
+                    "date": 1652642201178,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1652642317687,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -41,9 +41,9 @@\n         s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, ttl_bin)\n \n     while True:\n         data = repr(time.time())\n-        s.sendto(data + '\\0', (addrinfo[4][0], MYPORT))\n+        s.sendto((data + '\\0').encode(), (addrinfo[4][0], MYPORT))\n         time.sleep(1)\n \n \n def receiver(group):\n"
+                },
+                {
+                    "date": 1652642354736,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -41,9 +41,11 @@\n         s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, ttl_bin)\n \n     while True:\n         data = repr(time.time())\n+        print(\"Starting to send\")\n         s.sendto((data + '\\0').encode(), (addrinfo[4][0], MYPORT))\n+        print(\"Sent\")\n         time.sleep(1)\n \n \n def receiver(group):\n"
+                },
+                {
+                    "date": 1652642370580,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -72,8 +72,9 @@\n         s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, mreq)\n \n     # Loop, printing any data we receive\n     while True:\n+        print(\"Starting to receive\")\n         data, sender = s.recvfrom(1500)\n         while data[-1:] == '\\0': data = data[:-1] # Strip trailing \\0's\n         print (str(sender) + '  ' + repr(data))\n \n"
+                }
+            ],
+            "date": 1652642201178,
+            "name": "Commit-0",
+            "content": "#!/usr/bin/env python\n#\n# Send/receive UDP multicast packets.\n# Requires that your OS kernel supports IP multicast.\n#\n# Usage:\n#   mcast -s (sender, IPv4)\n#   mcast -s -6 (sender, IPv6)\n#   mcast    (receivers, IPv4)\n#   mcast  -6  (receivers, IPv6)\n\nMYPORT = 8123\nMYGROUP_4 = '225.0.0.250'\nMYGROUP_6 = 'ff15:7079:7468:6f6e:6465:6d6f:6d63:6173'\nMYTTL = 1 # Increase to reach other networks\n\nimport time\nimport struct\nimport socket\nimport sys\n\ndef main():\n    group = MYGROUP_6 if \"-6\" in sys.argv[1:] else MYGROUP_4\n\n    if \"-s\" in sys.argv[1:]:\n        sender(group)\n    else:\n        receiver(group)\n\n\ndef sender(group):\n    addrinfo = socket.getaddrinfo(group, None)[0]\n\n    s = socket.socket(addrinfo[0], socket.SOCK_DGRAM)\n\n    # Set Time-to-live (optional)\n    ttl_bin = struct.pack('@i', MYTTL)\n    if addrinfo[0] == socket.AF_INET: # IPv4\n        s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, ttl_bin)\n    else:\n        s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, ttl_bin)\n\n    while True:\n        data = repr(time.time())\n        s.sendto(data + '\\0', (addrinfo[4][0], MYPORT))\n        time.sleep(1)\n\n\ndef receiver(group):\n    # Look up multicast group address in name server and find out IP version\n    addrinfo = socket.getaddrinfo(group, None)[0]\n\n    # Create a socket\n    s = socket.socket(addrinfo[0], socket.SOCK_DGRAM)\n\n    # Allow multiple copies of this program on one machine\n    # (not strictly needed)\n    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n\n    # Bind it to the port\n    s.bind(('', MYPORT))\n\n    group_bin = socket.inet_pton(addrinfo[0], addrinfo[4][0])\n    # Join group\n    if addrinfo[0] == socket.AF_INET: # IPv4\n        mreq = group_bin + struct.pack('=I', socket.INADDR_ANY)\n        s.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)\n    else:\n        mreq = group_bin + struct.pack('@I', 0)\n        s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, mreq)\n\n    # Loop, printing any data we receive\n    while True:\n        data, sender = s.recvfrom(1500)\n        while data[-1:] == '\\0': data = data[:-1] # Strip trailing \\0's\n        print (str(sender) + '  ' + repr(data))\n\n\nif __name__ == '__main__':\n    main()"
+        }
+    ]
+}

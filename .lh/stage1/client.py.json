@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 16,
+            "activePatchIndex": 92,
             "patches": [
                 {
                     "date": 1652554336335,
@@ -72,6 +72,310 @@
                 {
                     "date": 1652558156486,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -75,10 +75,10 @@\n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n         self.controlSocket.bind('', self.controlPort)\n         self.options = dict()\n+        self.filePaths = []\n         \n-        \n \n \n \n     def inGame(self):\n@@ -123,8 +123,9 @@\n     \"\"\"\n     def play(self, options):\n         selections = []\n         for game in options:\n+            Player = Player.Player(game, options[game])\n             for key,value in game:\n                 print(\" %s : %s \", key, value)\n             startTime = time.time()\n             sel = input(\"Selecione uma das opções: \")\n"
+                },
+                {
+                    "date": 1652623203925,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -61,8 +61,9 @@\n                 print(\"Heartbeat OK\")\n             print(\"Heartbeat standby\")\n \n     def run(self):\n+        print(\"Thread de autenticação iniciada\")\n         self.auth()\n     \n \n class Game(threading.Thread):\n@@ -178,5 +179,9 @@\n         \n def main():\n     serverAddr = sys.argv[1]\n     serverPort = int(sys.argv[2])\n+    #Start auth thread\n+    auth = Auth(serverAddr, serverPort)\n+    auth.start()\n+    \n     \n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1652623222464,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -167,21 +167,16 @@\n             print(\"Inicio de jogo recebido\")\n             self.controlSocket.sendto('gameStartOk'.encode(), (serverAddr, self.controlPort))\n             print(\"Inicio de jogo confirmado\")\n             self.inGame()\n+       \n         \n         \n-            \n-            \n-            \n-                \n-        \n-        \n-        \n def main():\n     serverAddr = sys.argv[1]\n     serverPort = int(sys.argv[2])\n     #Start auth thread\n     auth = Auth(serverAddr, serverPort)\n     auth.start()\n     \n\\ No newline at end of file\n-    \n+if __name__ == '__main__':\n+    main()  \n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1652623262643,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -7,13 +7,12 @@\n mcaddr = \"\"\n serverAddr = \"\"\n \n class Auth(threading.Thread):\n-    def __init__(self, serverAddr, serverPort):\n+    def __init__(self, serverAddr):\n         threading.Thread.__init__(self)\n         self.serverAddr = serverAddr\n-        self.serverPort = serverPort\n-        \n+        self.serverPort = 8080\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.hport = 8081\n         self.buffer = 2048\n         \n"
+                },
+                {
+                    "date": 1652623273592,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -171,9 +171,8 @@\n         \n         \n def main():\n     serverAddr = sys.argv[1]\n-    serverPort = int(sys.argv[2])\n     #Start auth thread\n     auth = Auth(serverAddr, serverPort)\n     auth.start()\n     \n"
+                },
+                {
+                    "date": 1652623283571,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -172,9 +172,9 @@\n         \n def main():\n     serverAddr = sys.argv[1]\n     #Start auth thread\n-    auth = Auth(serverAddr, serverPort)\n+    auth = Auth(serverAddr)\n     auth.start()\n     \n if __name__ == '__main__':\n     main()  \n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1652623454865,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -24,8 +24,9 @@\n         self.socket=socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.socket.bind(('', self.serverPort))\n         print(\"A tentar autenticar com o servidor\")\n         self.socket.sendto(b'new-', (self.serverAddr, self.serverPort))\n+        print(\"Auth enviado\")\n         while True:\n             data, addr = self.socket.recvfrom(self.buffer)\n             data = data.decode()\n             if data.split('-')[0] == 'hello-':\n"
+                },
+                {
+                    "date": 1652623487226,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -23,11 +23,11 @@\n         serverAddr = self.serverAddr\n         self.socket=socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.socket.bind(('', self.serverPort))\n         print(\"A tentar autenticar com o servidor\")\n-        self.socket.sendto(b'new-', (self.serverAddr, self.serverPort))\n-        print(\"Auth enviado\")\n         while True:\n+            self.socket.sendto(b'new-', (self.serverAddr, self.serverPort))\n+            print(\"Auth enviado\")\n             data, addr = self.socket.recvfrom(self.buffer)\n             data = data.decode()\n             if data.split('-')[0] == 'hello-':\n                 print(\"Autenticado com sucesso\")\n"
+                },
+                {
+                    "date": 1652623507395,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -25,9 +25,8 @@\n         self.socket.bind(('', self.serverPort))\n         print(\"A tentar autenticar com o servidor\")\n         while True:\n             self.socket.sendto(b'new-', (self.serverAddr, self.serverPort))\n-            print(\"Auth enviado\")\n             data, addr = self.socket.recvfrom(self.buffer)\n             data = data.decode()\n             if data.split('-')[0] == 'hello-':\n                 print(\"Autenticado com sucesso\")\n"
+                },
+                {
+                    "date": 1652623551912,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -23,10 +23,10 @@\n         serverAddr = self.serverAddr\n         self.socket=socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.socket.bind(('', self.serverPort))\n         print(\"A tentar autenticar com o servidor\")\n+        self.socket.sendto(b'new-', (self.serverAddr, self.serverPort))\n         while True:\n-            self.socket.sendto(b'new-', (self.serverAddr, self.serverPort))\n             data, addr = self.socket.recvfrom(self.buffer)\n             data = data.decode()\n             if data.split('-')[0] == 'hello-':\n                 print(\"Autenticado com sucesso\")\n"
+                },
+                {
+                    "date": 1652623600250,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -27,9 +27,9 @@\n         self.socket.sendto(b'new-', (self.serverAddr, self.serverPort))\n         while True:\n             data, addr = self.socket.recvfrom(self.buffer)\n             data = data.decode()\n-            if data.split('-')[0] == 'hello-':\n+            if data.split('-')[0] == 'hello':\n                 print(\"Autenticado com sucesso\")\n                 data.split('-')[2] = mcaddr\n                 print(\"Endereço multicast recebido: \" + data.split('-')[2])\n                 print(self.mcaddr)\n"
+                },
+                {
+                    "date": 1652623644483,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -31,9 +31,9 @@\n             if data.split('-')[0] == 'hello':\n                 print(\"Autenticado com sucesso\")\n                 data.split('-')[2] = mcaddr\n                 print(\"Endereço multicast recebido: \" + data.split('-')[2])\n-                print(self.mcaddr)\n+                print(mcaddr)\n                 self.socket.sendto(b'mcast-ok', addr)\n             elif data.split('-')[0] == 'ready?':\n                 print(\"Servidor a perguntar se estamos prontos:\")\n                 self.socket.sendto(b'readyOk', addr)\n"
+                },
+                {
+                    "date": 1652624026343,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -45,9 +45,9 @@\n                 self.socket.sendto(b'mcastOk', addr)\n                 print(\"Endereço multicast enviado\")\n                 print(\"A entrar em heartbeat\")\n                 break\n-        game = Game(mcaddr, serverAddr)\n+        game = Game(mcaddr)\n         game.start()\n         self.heartbeat()\n     \n     def heartbeat(self):\n"
+                },
+                {
+                    "date": 1652624076206,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -155,9 +155,9 @@\n         print(\"A tentar a subscricao multicast\")\n         self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)\n         self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)\n \n-        self.socket.bind(self.mcastAddr, self.port)\n+        self.socket.bind((self.mcastAddr,self.port))\n         host = socket.gethostbyname(socket.gethostname())\n         self.socket(socket.SOL_IP, socket.IP_MULTICAST_IF, socket.inet_aton(host))\n         self.setsockopt(socket.SOL_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(self.mcastAddr) + socket.inet_aton(host))\n         data, addr = self.socket.recvfrom(self.buffer)\n"
+                },
+                {
+                    "date": 1652624111877,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -73,9 +73,9 @@\n         self.mcastAddr = addr\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n-        self.controlSocket.bind('', self.controlPort)\n+        self.controlSocket.bind(('', self.controlPort))\n         self.options = dict()\n         self.filePaths = []\n         \n \n"
+                },
+                {
+                    "date": 1652624140144,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -66,8 +66,9 @@\n     \n \n class Game(threading.Thread):\n     def __init__(self,addr):\n+        threading.Thread.__init__(self)\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n         self.port = 8888\n         self.buffer = 2048\n         self.mcastAddr = addr\n"
+                },
+                {
+                    "date": 1652624255525,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -157,9 +157,9 @@\n         self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)\n         self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)\n \n         self.socket.bind((self.mcastAddr,self.port))\n-        host = socket.gethostbyname(socket.gethostname())\n+        host = socket.gethostname()\n         self.socket(socket.SOL_IP, socket.IP_MULTICAST_IF, socket.inet_aton(host))\n         self.setsockopt(socket.SOL_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(self.mcastAddr) + socket.inet_aton(host))\n         data, addr = self.socket.recvfrom(self.buffer)\n         data = data.decode()\n"
+                },
+                {
+                    "date": 1652624306919,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -157,9 +157,10 @@\n         self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)\n         self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)\n \n         self.socket.bind((self.mcastAddr,self.port))\n-        host = socket.gethostname()\n+        host_name = socket.gethostname()\n+        host = socket.gethostbyname(host_name)\n         self.socket(socket.SOL_IP, socket.IP_MULTICAST_IF, socket.inet_aton(host))\n         self.setsockopt(socket.SOL_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(self.mcastAddr) + socket.inet_aton(host))\n         data, addr = self.socket.recvfrom(self.buffer)\n         data = data.decode()\n"
+                },
+                {
+                    "date": 1652624841643,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -67,12 +67,15 @@\n \n class Game(threading.Thread):\n     def __init__(self,addr):\n         threading.Thread.__init__(self)\n-        self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n         self.port = 8888\n         self.buffer = 2048\n         self.mcastAddr = addr\n+        self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n+        self.socket.bind((self.mcastAddr, self.port))\n+        mreq = struct.pack(\"4sl\", socket.inet_aton(addr), socket.INADDR_ANY)\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n         self.controlSocket.bind(('', self.controlPort))\n@@ -153,10 +156,9 @@\n         except Exception as e:\n             print (\"Error: %s\" % e)\n             pass\n         print(\"A tentar a subscricao multicast\")\n-        self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)\n-        self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)\n+        \n \n         self.socket.bind((self.mcastAddr,self.port))\n         host_name = socket.gethostname()\n         host = socket.gethostbyname(host_name)\n"
+                },
+                {
+                    "date": 1652624861920,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -67,8 +67,9 @@\n \n class Game(threading.Thread):\n     def __init__(self,addr):\n         threading.Thread.__init__(self)\n+        print(addr)\n         self.port = 8888\n         self.buffer = 2048\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n"
+                },
+                {
+                    "date": 1652624881515,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -67,16 +67,15 @@\n \n class Game(threading.Thread):\n     def __init__(self,addr):\n         threading.Thread.__init__(self)\n-        print(addr)\n         self.port = 8888\n         self.buffer = 2048\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind((self.mcastAddr, self.port))\n-        mreq = struct.pack(\"4sl\", socket.inet_aton(addr), socket.INADDR_ANY)\n+\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n         self.controlSocket.bind(('', self.controlPort))\n"
+                },
+                {
+                    "date": 1652624920604,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -156,15 +156,10 @@\n         except Exception as e:\n             print (\"Error: %s\" % e)\n             pass\n         print(\"A tentar a subscricao multicast\")\n-        \n-\n-        self.socket.bind((self.mcastAddr,self.port))\n         host_name = socket.gethostname()\n         host = socket.gethostbyname(host_name)\n-        self.socket(socket.SOL_IP, socket.IP_MULTICAST_IF, socket.inet_aton(host))\n-        self.setsockopt(socket.SOL_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(self.mcastAddr) + socket.inet_aton(host))\n         data, addr = self.socket.recvfrom(self.buffer)\n         data = data.decode()\n         if data.split('-') == 'loading-':\n             print(\"Inicio de jogo recebido\")\n"
+                },
+                {
+                    "date": 1652625026477,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -150,16 +150,8 @@\n                     print(\"Perdeu o jogo!, o vencedor é %s\" % winner)\n     \n     \n     def run(self):\n-        try:\n-            self.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)    \n-        except Exception as e:\n-            print (\"Error: %s\" % e)\n-            pass\n-        print(\"A tentar a subscricao multicast\")\n-        host_name = socket.gethostname()\n-        host = socket.gethostbyname(host_name)\n         data, addr = self.socket.recvfrom(self.buffer)\n         data = data.decode()\n         if data.split('-') == 'loading-':\n             print(\"Inicio de jogo recebido\")\n"
+                },
+                {
+                    "date": 1652626475907,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -47,9 +47,9 @@\n                 print(\"A entrar em heartbeat\")\n                 break\n         game = Game(mcaddr)\n         game.start()\n-        self.heartbeat()\n+        #self.heartbeat()\n     \n     def heartbeat(self):\n         while True:\n             self.socket.sendto(b'heartbeat', (self.serverAddr, self.serverPort))\n"
+                },
+                {
+                    "date": 1652626496060,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -43,9 +43,9 @@\n             elif data.split('-')[0] == 'mcast?':\n                 print(\"Servidor a perguntar o endereço multicast:\")\n                 self.socket.sendto(b'mcastOk', addr)\n                 print(\"Endereço multicast enviado\")\n-                print(\"A entrar em heartbeat\")\n+                #print(\"A entrar em heartbeat\")\n                 break\n         game = Game(mcaddr)\n         game.start()\n         #self.heartbeat()\n"
+                },
+                {
+                    "date": 1652626555419,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -150,9 +150,9 @@\n                     print(\"Perdeu o jogo!, o vencedor é %s\" % winner)\n     \n     \n     def run(self):\n-        data, addr = self.socket.recvfrom(self.buffer)\n+        data, addr = self.controlSocket.recvfrom(self.buffer)\n         data = data.decode()\n         if data.split('-') == 'loading-':\n             print(\"Inicio de jogo recebido\")\n             self.controlSocket.sendto('gameStartOk'.encode(), (serverAddr, self.controlPort))\n"
+                },
+                {
+                    "date": 1652626563295,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -150,9 +150,9 @@\n                     print(\"Perdeu o jogo!, o vencedor é %s\" % winner)\n     \n     \n     def run(self):\n-        data, addr = self.controlSocket.recvfrom(self.buffer)\n+        data, addr = self.socket.recvfrom(self.buffer)\n         data = data.decode()\n         if data.split('-') == 'loading-':\n             print(\"Inicio de jogo recebido\")\n             self.controlSocket.sendto('gameStartOk'.encode(), (serverAddr, self.controlPort))\n"
+                },
+                {
+                    "date": 1652626799250,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -73,9 +73,10 @@\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind((self.mcastAddr, self.port))\n-\n+        mreq = struct.pack(\"4sl\", socket.inet_aton(str(self.mcastAddr)), socket.port)\n+        self.socket.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP, mreq)\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n         self.controlSocket.bind(('', self.controlPort))\n"
+                },
+                {
+                    "date": 1652626948937,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -73,9 +73,9 @@\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind((self.mcastAddr, self.port))\n-        mreq = struct.pack(\"4sl\", socket.inet_aton(str(self.mcastAddr)), socket.port)\n+        mreq = struct.pack(\"4sl\", socket.inet_aton(str(self.mcastAddr)), self.port)\n         self.socket.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP, mreq)\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n"
+                },
+                {
+                    "date": 1652627162141,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -83,10 +83,13 @@\n         self.options = dict()\n         self.filePaths = []\n         \n \n+    def ipv6converter(self,ipv6):\n+        ipv6 = inet_aton(AF_INET6, ipv6)\n+        a,b = unpack('>QQ', ipv6)\n+        return (a << 64) | b\n \n-\n     def inGame(self):\n         print(\"A espera de ficheiros de musica\")\n         rec = Receiver.Receiver(self.mcastAddr, self.port, self.buffer)\n         self.controlSocket.sendto('songOk'.encode(), (serverAddr, self.controlPort))\n"
+                },
+                {
+                    "date": 1652627194991,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -73,8 +73,9 @@\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind((self.mcastAddr, self.port))\n+        self.mreq = struct.pack(\"4sl\", socket.inet_pton(socket.AF_INET6, self.ipv6converter(self.mcastAddr)), socket.IN6ADDR_ANY)\n         mreq = struct.pack(\"4sl\", socket.inet_aton(str(self.mcastAddr)), self.port)\n         self.socket.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP, mreq)\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n"
+                },
+                {
+                    "date": 1652627211042,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -73,10 +73,9 @@\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind((self.mcastAddr, self.port))\n-        self.mreq = struct.pack(\"4sl\", socket.inet_pton(socket.AF_INET6, self.ipv6converter(self.mcastAddr)), socket.IN6ADDR_ANY)\n-        mreq = struct.pack(\"4sl\", socket.inet_aton(str(self.mcastAddr)), self.port)\n+        self.mreq = struct.pack(\"4sl\", socket.inet_pton(socket.AF_INET6, self.ipv6converter(self.mcastAddr)), socket.port)\n         self.socket.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP, mreq)\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n"
+                },
+                {
+                    "date": 1652627233929,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,7 +1,7 @@\n \n from re import S\n-import time, struct, socket, sys, threading, pickle, Receiver, Player, json, pickle\n+import time, struct, socket, sys, threading, pickle, Receiver, Player, json, pickle, inet_aton\n \n \n gameOn = 0\n mcaddr = \"\"\n@@ -74,9 +74,9 @@\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind((self.mcastAddr, self.port))\n         self.mreq = struct.pack(\"4sl\", socket.inet_pton(socket.AF_INET6, self.ipv6converter(self.mcastAddr)), socket.port)\n-        self.socket.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP, mreq)\n+        self.socket.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP, self.mreq)\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n         self.controlSocket.bind(('', self.controlPort))\n"
+                },
+                {
+                    "date": 1652627256161,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,7 +1,7 @@\n \n from re import S\n-import time, struct, socket, sys, threading, pickle, Receiver, Player, json, pickle, inet_aton\n+import time, struct, socket, sys, threading, pickle, Receiver, Player, json, pickle\n \n \n gameOn = 0\n mcaddr = \"\"\n"
+                },
+                {
+                    "date": 1652627282524,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -84,9 +84,9 @@\n         self.filePaths = []\n         \n \n     def ipv6converter(self,ipv6):\n-        ipv6 = inet_aton(AF_INET6, ipv6)\n+        ipv6 = self.inet_aton(AF_INET6, ipv6)\n         a,b = unpack('>QQ', ipv6)\n         return (a << 64) | b\n \n     def inGame(self):\n"
+                },
+                {
+                    "date": 1652627295591,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -84,9 +84,9 @@\n         self.filePaths = []\n         \n \n     def ipv6converter(self,ipv6):\n-        ipv6 = self.inet_aton(AF_INET6, ipv6)\n+        ipv6 = sockets.inet_aton(AF_INET6, ipv6)\n         a,b = unpack('>QQ', ipv6)\n         return (a << 64) | b\n \n     def inGame(self):\n"
+                },
+                {
+                    "date": 1652627312968,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -84,9 +84,9 @@\n         self.filePaths = []\n         \n \n     def ipv6converter(self,ipv6):\n-        ipv6 = sockets.inet_aton(AF_INET6, ipv6)\n+        ipv6 = socket.inet_aton(socket.AF_INET6, ipv6)\n         a,b = unpack('>QQ', ipv6)\n         return (a << 64) | b\n \n     def inGame(self):\n"
+                },
+                {
+                    "date": 1652627338571,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -84,9 +84,9 @@\n         self.filePaths = []\n         \n \n     def ipv6converter(self,ipv6):\n-        ipv6 = socket.inet_aton(socket.AF_INET6, ipv6)\n+        ipv6 = socket.inet_aton((socket.AF_INET6, ipv6))\n         a,b = unpack('>QQ', ipv6)\n         return (a << 64) | b\n \n     def inGame(self):\n"
+                },
+                {
+                    "date": 1652627351499,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -84,9 +84,9 @@\n         self.filePaths = []\n         \n \n     def ipv6converter(self,ipv6):\n-        ipv6 = socket.inet_aton((socket.AF_INET6, ipv6))\n+        ipv6 = socket.inet_aton(socket.AF_INET6, ipv6)\n         a,b = unpack('>QQ', ipv6)\n         return (a << 64) | b\n \n     def inGame(self):\n"
+                },
+                {
+                    "date": 1652627382068,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -84,9 +84,9 @@\n         self.filePaths = []\n         \n \n     def ipv6converter(self,ipv6):\n-        ipv6 = socket.inet_aton(socket.AF_INET6, ipv6)\n+        ipv6 = socket.inet_pton(socket.AF_INET6, ipv6)\n         a,b = unpack('>QQ', ipv6)\n         return (a << 64) | b\n \n     def inGame(self):\n"
+                },
+                {
+                    "date": 1652627434969,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -73,9 +73,9 @@\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind((self.mcastAddr, self.port))\n-        self.mreq = struct.pack(\"4sl\", socket.inet_pton(socket.AF_INET6, self.ipv6converter(self.mcastAddr)), socket.port)\n+        self.mreq = struct.pack(\"4sl\", socket.inet_aton(socket.AF_INET6, self.ipv6converter(self.mcastAddr)), socket.port)\n         self.socket.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP, self.mreq)\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n"
+                },
+                {
+                    "date": 1652627461059,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -84,9 +84,10 @@\n         self.filePaths = []\n         \n \n     def ipv6converter(self,ipv6):\n-        ipv6 = socket.inet_pton(socket.AF_INET6, ipv6)\n+        print(ipv6)\n+        ipv6 = socket.inet_pton(socket.AF_INET6, str(ipv6))\n         a,b = unpack('>QQ', ipv6)\n         return (a << 64) | b\n \n     def inGame(self):\n"
+                },
+                {
+                    "date": 1652627523965,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -37,9 +37,9 @@\n             elif data.split('-')[0] == 'ready?':\n                 print(\"Servidor a perguntar se estamos prontos:\")\n                 self.socket.sendto(b'readyOk', addr)\n                 print(\"Estado Ready enviado\")\n-                print(\"A entrar em heartbeat\")\n+                #print(\"A entrar em heartbeat\")\n                 break\n             elif data.split('-')[0] == 'mcast?':\n                 print(\"Servidor a perguntar o endereço multicast:\")\n                 self.socket.sendto(b'mcastOk', addr)\n"
+                },
+                {
+                    "date": 1652627547706,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -155,8 +155,9 @@\n                     print(\"Perdeu o jogo!, o vencedor é %s\" % winner)\n     \n     \n     def run(self):\n+        print(\"Thread de jogo inciada\")\n         data, addr = self.socket.recvfrom(self.buffer)\n         data = data.decode()\n         if data.split('-') == 'loading-':\n             print(\"Inicio de jogo recebido\")\n"
+                },
+                {
+                    "date": 1652627586105,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -45,8 +45,9 @@\n                 self.socket.sendto(b'mcastOk', addr)\n                 print(\"Endereço multicast enviado\")\n                 #print(\"A entrar em heartbeat\")\n                 break\n+        print(mcaddr)\n         game = Game(mcaddr)\n         game.start()\n         #self.heartbeat()\n     \n"
+                },
+                {
+                    "date": 1652627659122,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -29,9 +29,9 @@\n             data, addr = self.socket.recvfrom(self.buffer)\n             data = data.decode()\n             if data.split('-')[0] == 'hello':\n                 print(\"Autenticado com sucesso\")\n-                data.split('-')[2] = mcaddr\n+                mcaddr = data.split('-')[2] \n                 print(\"Endereço multicast recebido: \" + data.split('-')[2])\n                 print(mcaddr)\n                 self.socket.sendto(b'mcast-ok', addr)\n             elif data.split('-')[0] == 'ready?':\n@@ -45,9 +45,9 @@\n                 self.socket.sendto(b'mcastOk', addr)\n                 print(\"Endereço multicast enviado\")\n                 #print(\"A entrar em heartbeat\")\n                 break\n-        print(mcaddr)\n+        print\n         game = Game(mcaddr)\n         game.start()\n         #self.heartbeat()\n     \n"
+                },
+                {
+                    "date": 1652627759320,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -73,9 +73,9 @@\n         self.buffer = 2048\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n-        self.socket.bind((self.mcastAddr, self.port))\n+        self.socket.bind(('', self.port))\n         self.mreq = struct.pack(\"4sl\", socket.inet_aton(socket.AF_INET6, self.ipv6converter(self.mcastAddr)), socket.port)\n         self.socket.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP, self.mreq)\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n"
+                },
+                {
+                    "date": 1652627789135,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -87,9 +87,9 @@\n \n     def ipv6converter(self,ipv6):\n         print(ipv6)\n         ipv6 = socket.inet_pton(socket.AF_INET6, str(ipv6))\n-        a,b = unpack('>QQ', ipv6)\n+        a,b = struct.unpack('>QQ', ipv6)\n         return (a << 64) | b\n \n     def inGame(self):\n         print(\"A espera de ficheiros de musica\")\n"
+                },
+                {
+                    "date": 1652627816057,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -74,9 +74,9 @@\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind(('', self.port))\n-        self.mreq = struct.pack(\"4sl\", socket.inet_aton(socket.AF_INET6, self.ipv6converter(self.mcastAddr)), socket.port)\n+        self.mreq = struct.pack(\"4sl\", socket.inet_aton((socket.AF_INET6, self.ipv6converter(self.mcastAddr)), socket.port))\n         self.socket.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP, self.mreq)\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n"
+                },
+                {
+                    "date": 1652627828224,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -74,9 +74,9 @@\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind(('', self.port))\n-        self.mreq = struct.pack(\"4sl\", socket.inet_aton((socket.AF_INET6, self.ipv6converter(self.mcastAddr)), socket.port))\n+        self.mreq = struct.pack(\"4sl\", socket.inet_aton((socket.AF_INET6, self.ipv6converter(self.mcastAddr)), self.port))\n         self.socket.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP, self.mreq)\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n"
+                },
+                {
+                    "date": 1652627957710,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -74,9 +74,9 @@\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind(('', self.port))\n-        self.mreq = struct.pack(\"4sl\", socket.inet_aton((socket.AF_INET6, self.ipv6converter(self.mcastAddr)), self.port))\n+        self.mreq = struct.pack('4sl', socket.inet_aton((self.ipv6converter(self.mcaddr),socket.INADDR_ANY)\n         self.socket.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP, self.mreq)\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n"
+                },
+                {
+                    "date": 1652627972589,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -74,9 +74,9 @@\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind(('', self.port))\n-        self.mreq = struct.pack('4sl', socket.inet_aton((self.ipv6converter(self.mcaddr),socket.INADDR_ANY)\n+        self.mreq = struct.pack('4sl', socket.inet_aton((self.ipv6converter(self.mcaddr),socket.INADDR_ANY))\n         self.socket.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP, self.mreq)\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n"
+                },
+                {
+                    "date": 1652627998457,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -74,9 +74,9 @@\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind(('', self.port))\n-        self.mreq = struct.pack('4sl', socket.inet_aton((self.ipv6converter(self.mcaddr),socket.INADDR_ANY))\n+        self.mreq = struct.pack('4sl', socket.inet_aton((self.ipv6converter(self.mcastAddr),socket.INADDR_ANY)))\n         self.socket.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP, self.mreq)\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n"
+                },
+                {
+                    "date": 1652628036834,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -74,9 +74,9 @@\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind(('', self.port))\n-        self.mreq = struct.pack('4sl', socket.inet_aton((self.ipv6converter(self.mcastAddr),socket.INADDR_ANY)))\n+        mreq = struct.pack('4sl', socket.inet_aton(MCAST_GRP), socket.INADDR_ANY)\n         self.socket.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP, self.mreq)\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n"
+                },
+                {
+                    "date": 1652628054322,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -74,9 +74,9 @@\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind(('', self.port))\n-        mreq = struct.pack('4sl', socket.inet_aton(MCAST_GRP), socket.INADDR_ANY)\n+        mreq = struct.pack('4sl', socket.inet_aton(mcaddr), socket.INADDR_ANY)\n         self.socket.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP, self.mreq)\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n"
+                },
+                {
+                    "date": 1652628086899,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -74,9 +74,9 @@\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind(('', self.port))\n-        mreq = struct.pack('4sl', socket.inet_aton(mcaddr), socket.INADDR_ANY)\n+        mreq = struct.pack('4sl', socket.inet_aton(self.ipv6converter(mcaddr)), socket.INADDR_ANY)\n         self.socket.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP, self.mreq)\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n"
+                },
+                {
+                    "date": 1652628109125,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -74,9 +74,9 @@\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind(('', self.port))\n-        mreq = struct.pack('4sl', socket.inet_aton(self.ipv6converter(mcaddr)), socket.INADDR_ANY)\n+        mreq = struct.pack('4sl', socket.inet_aton(str(self.ipv6converter(mcaddr))), socket.INADDR_ANY)\n         self.socket.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP, self.mreq)\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n"
+                },
+                {
+                    "date": 1652638409612,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -71,13 +71,11 @@\n         threading.Thread.__init__(self)\n         self.port = 8888\n         self.buffer = 2048\n         self.mcastAddr = addr\n-        self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)\n-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n+        self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)\n         self.socket.bind(('', self.port))\n-        mreq = struct.pack('4sl', socket.inet_aton(str(self.ipv6converter(mcaddr))), socket.INADDR_ANY)\n-        self.socket.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP, self.mreq)\n+      \n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n         self.controlSocket.bind(('', self.controlPort))\n"
+                },
+                {
+                    "date": 1652638492629,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -72,10 +72,11 @@\n         self.port = 8888\n         self.buffer = 2048\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)\n-        self.socket.bind(('', self.port))\n-      \n+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n+        self.socket.bind((mcaddr, self.port))\n+\n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n         self.controlSocket.bind(('', self.controlPort))\n"
+                },
+                {
+                    "date": 1652638620212,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -74,10 +74,11 @@\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind((mcaddr, self.port))\n-\n         \n+        mreq = struct.pack(\"4sl\", socket.inet_aton(socket.AF_INET6, mcaddr), socket.INADDR_ANY)\n+        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, mreq)\n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n         self.controlSocket.bind(('', self.controlPort))\n         self.options = dict()\n"
+                },
+                {
+                    "date": 1652638647420,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -74,9 +74,9 @@\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind((mcaddr, self.port))\n-        \n+        print(mcaddr)\n         mreq = struct.pack(\"4sl\", socket.inet_aton(socket.AF_INET6, mcaddr), socket.INADDR_ANY)\n         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, mreq)\n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n"
+                },
+                {
+                    "date": 1652638766617,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -73,9 +73,9 @@\n         self.buffer = 2048\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n-        self.socket.bind((mcaddr, self.port))\n+        self.socket.bind((INADDR_ANY, self.port))\n         print(mcaddr)\n         mreq = struct.pack(\"4sl\", socket.inet_aton(socket.AF_INET6, mcaddr), socket.INADDR_ANY)\n         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, mreq)\n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n"
+                },
+                {
+                    "date": 1652638773338,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -73,9 +73,9 @@\n         self.buffer = 2048\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n-        self.socket.bind((INADDR_ANY, self.port))\n+        self.socket.bind((IN6ADDR_ANY, self.port))\n         print(mcaddr)\n         mreq = struct.pack(\"4sl\", socket.inet_aton(socket.AF_INET6, mcaddr), socket.INADDR_ANY)\n         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, mreq)\n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n"
+                },
+                {
+                    "date": 1652639195128,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -72,13 +72,15 @@\n         self.port = 8888\n         self.buffer = 2048\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)\n-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n-        self.socket.bind((IN6ADDR_ANY, self.port))\n-        print(mcaddr)\n-        mreq = struct.pack(\"4sl\", socket.inet_aton(socket.AF_INET6, mcaddr), socket.INADDR_ANY)\n-        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, mreq)\n+        self.mcaddr = ipaddress.IPv6Address(addr)\n+        self.interface_index = socket.if_nametoindex('eth0')\n+        self.join_data = struct.pack(\"=16s\", self.mcaddr.packed,self.interface_index)\n+        self.setsockopt(socket.IPPROTO_IPV6,socket.IPV6_JOIN_GROUP, self.join_data)\n+        \n+        \n+        \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n         self.controlSocket.bind(('', self.controlPort))\n         self.options = dict()\n"
+                },
+                {
+                    "date": 1652639255106,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -72,11 +72,10 @@\n         self.port = 8888\n         self.buffer = 2048\n         self.mcastAddr = addr\n         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)\n-        self.mcaddr = ipaddress.IPv6Address(addr)\n         self.interface_index = socket.if_nametoindex('eth0')\n-        self.join_data = struct.pack(\"=16s\", self.mcaddr.packed,self.interface_index)\n+        self.join_data = struct.pack(\"=16s\", self.mcastAddr,self.interface_index)\n         self.setsockopt(socket.IPPROTO_IPV6,socket.IPV6_JOIN_GROUP, self.join_data)\n         \n         \n         \n"
+                },
+                {
+                    "date": 1652639305135,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -85,14 +85,8 @@\n         self.options = dict()\n         self.filePaths = []\n         \n \n-    def ipv6converter(self,ipv6):\n-        print(ipv6)\n-        ipv6 = socket.inet_pton(socket.AF_INET6, str(ipv6))\n-        a,b = struct.unpack('>QQ', ipv6)\n-        return (a << 64) | b\n-\n     def inGame(self):\n         print(\"A espera de ficheiros de musica\")\n         rec = Receiver.Receiver(self.mcastAddr, self.port, self.buffer)\n         self.controlSocket.sendto('songOk'.encode(), (serverAddr, self.controlPort))\n"
+                },
+                {
+                    "date": 1652639399165,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -71,15 +71,20 @@\n         threading.Thread.__init__(self)\n         self.port = 8888\n         self.buffer = 2048\n         self.mcastAddr = addr\n-        self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)\n-        self.interface_index = socket.if_nametoindex('eth0')\n-        self.join_data = struct.pack(\"=16s\", self.mcastAddr,self.interface_index)\n-        self.setsockopt(socket.IPPROTO_IPV6,socket.IPV6_JOIN_GROUP, self.join_data)\n         \n+        #Create socket, bind to listen to multicast ipv6 group with self.mcastAddr and self.port\n+        self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n+        self.socket.bind(('', self.port))\n+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)\n+        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, 1)\n+        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)\n+        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_IF, socket.inet_pton(socket.AF_INET6, '::1'))\n         \n         \n+        \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n         self.controlSocket.bind(('', self.controlPort))\n         self.options = dict()\n"
+                },
+                {
+                    "date": 1652639416423,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -80,8 +80,10 @@\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)\n         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, 1)\n         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)\n         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_IF, socket.inet_pton(socket.AF_INET6, '::1'))\n+        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, socket.inet_pton(socket.AF_INET6, self.mcastAddr))\n+\n         \n         \n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n"
+                },
+                {
+                    "date": 1652639435270,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -80,9 +80,9 @@\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)\n         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, 1)\n         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)\n         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_IF, socket.inet_pton(socket.AF_INET6, '::1'))\n-        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, socket.inet_pton(socket.AF_INET6, self.mcastAddr))\n+        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, socket.inet_pton(socket.AF_INET6, str(self.mcastAddr)))\n \n         \n         \n         \n"
+                },
+                {
+                    "date": 1652640026538,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -73,17 +73,14 @@\n         self.buffer = 2048\n         self.mcastAddr = addr\n         \n         #Create socket, bind to listen to multicast ipv6 group with self.mcastAddr and self.port\n-        self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n-        self.socket.bind(('', self.port))\n+        self.addrInfo = socket.getaddrinfo(self.mcastAddr,None)[0]\n+        self.socket = socket.socket(self.addrInfo[0], socket.SOCK_DGRAM)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)\n-        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, 1)\n-        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)\n-        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_IF, socket.inet_pton(socket.AF_INET6, '::1'))\n-        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, socket.inet_pton(socket.AF_INET6, str(self.mcastAddr)))\n-\n+        self.group = socket.inet_pton(self.addrInfo[0],self.addrInfo[4][0])\n+        mreq = group + struct.pack('@I', 0)\n+        self.socket.bind(('',self.port))\n         \n         \n         \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n"
+                },
+                {
+                    "date": 1652640059462,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -76,14 +76,17 @@\n         #Create socket, bind to listen to multicast ipv6 group with self.mcastAddr and self.port\n         self.addrInfo = socket.getaddrinfo(self.mcastAddr,None)[0]\n         self.socket = socket.socket(self.addrInfo[0], socket.SOCK_DGRAM)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n-        self.group = socket.inet_pton(self.addrInfo[0],self.addrInfo[4][0])\n-        mreq = group + struct.pack('@I', 0)\n         self.socket.bind(('',self.port))\n         \n+        self.group = socket.inet_pton(self.addrInfo[0],self.addrInfo[4][0])\n+        self.mreq = group + struct.pack('@I', 0)\n+        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, self.mreq)\n         \n         \n+        \n+        \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n         self.controlSocket.bind(('', self.controlPort))\n         self.options = dict()\n"
+                },
+                {
+                    "date": 1652640069040,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -79,9 +79,9 @@\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.bind(('',self.port))\n         \n         self.group = socket.inet_pton(self.addrInfo[0],self.addrInfo[4][0])\n-        self.mreq = group + struct.pack('@I', 0)\n+        self.mreq = self.group + struct.pack('@I', 0)\n         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, self.mreq)\n         \n         \n         \n"
+                },
+                {
+                    "date": 1652641853414,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -160,8 +160,9 @@\n     \n     def run(self):\n         print(\"Thread de jogo inciada\")\n         data, addr = self.socket.recvfrom(self.buffer)\n+        print(\"Depois de receber\")\n         data = data.decode()\n         if data.split('-') == 'loading-':\n             print(\"Inicio de jogo recebido\")\n             self.controlSocket.sendto('gameStartOk'.encode(), (serverAddr, self.controlPort))\n"
+                },
+                {
+                    "date": 1652642017430,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -76,12 +76,12 @@\n         #Create socket, bind to listen to multicast ipv6 group with self.mcastAddr and self.port\n         self.addrInfo = socket.getaddrinfo(self.mcastAddr,None)[0]\n         self.socket = socket.socket(self.addrInfo[0], socket.SOCK_DGRAM)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n+        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, True)\n         self.socket.bind(('',self.port))\n         \n-        self.group = socket.inet_pton(self.addrInfo[0],self.addrInfo[4][0])\n-        self.mreq = self.group + struct.pack('@I', 0)\n+        mreq = struct.pack(\"16s15s\".encode('utf-8'),socket.inet_pton(socket.AF_INET6,self.mcastAddr),(chr(0)*16).encode('utf-8'))\n         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, self.mreq)\n         \n         \n         \n"
+                },
+                {
+                    "date": 1652642025291,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -79,9 +79,9 @@\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, True)\n         self.socket.bind(('',self.port))\n         \n-        mreq = struct.pack(\"16s15s\".encode('utf-8'),socket.inet_pton(socket.AF_INET6,self.mcastAddr),(chr(0)*16).encode('utf-8'))\n+        self.mreq = struct.pack(\"16s15s\".encode('utf-8'),socket.inet_pton(socket.AF_INET6,self.mcastAddr),(chr(0)*16).encode('utf-8'))\n         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, self.mreq)\n         \n         \n         \n"
+                },
+                {
+                    "date": 1652642041779,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -78,9 +78,8 @@\n         self.socket = socket.socket(self.addrInfo[0], socket.SOCK_DGRAM)\n         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, True)\n         self.socket.bind(('',self.port))\n-        \n         self.mreq = struct.pack(\"16s15s\".encode('utf-8'),socket.inet_pton(socket.AF_INET6,self.mcastAddr),(chr(0)*16).encode('utf-8'))\n         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, self.mreq)\n         \n         \n"
+                },
+                {
+                    "date": 1652642058342,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -80,12 +80,12 @@\n         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, True)\n         self.socket.bind(('',self.port))\n         self.mreq = struct.pack(\"16s15s\".encode('utf-8'),socket.inet_pton(socket.AF_INET6,self.mcastAddr),(chr(0)*16).encode('utf-8'))\n         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, self.mreq)\n+        print(\"socket configurado\")\n         \n         \n         \n-        \n         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n         self.controlPort = 8081\n         self.controlSocket.bind(('', self.controlPort))\n         self.options = dict()\n"
                 }
             ],
             "date": 1652554336335,

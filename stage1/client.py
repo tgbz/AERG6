@@ -8,11 +8,10 @@ mcaddr = ""
 serverAddr = ""
 
 class Auth(threading.Thread):
-    def __init__(self, serverAddr, serverPort):
+    def __init__(self, serverAddr):
         threading.Thread.__init__(self)
         self.serverAddr = serverAddr
-        self.serverPort = serverPort
-        
+        self.serverPort = 8080
         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
         self.hport = 8081
         self.buffer = 2048
@@ -29,27 +28,28 @@ class Auth(threading.Thread):
         while True:
             data, addr = self.socket.recvfrom(self.buffer)
             data = data.decode()
-            if data.split('-')[0] == 'hello-':
+            if data.split('-')[0] == 'hello':
                 print("Autenticado com sucesso")
-                data.split('-')[2] = mcaddr
+                mcaddr = data.split('-')[2] 
                 print("Endereço multicast recebido: " + data.split('-')[2])
-                print(self.mcaddr)
+                print(mcaddr)
                 self.socket.sendto(b'mcast-ok', addr)
             elif data.split('-')[0] == 'ready?':
                 print("Servidor a perguntar se estamos prontos:")
                 self.socket.sendto(b'readyOk', addr)
                 print("Estado Ready enviado")
-                print("A entrar em heartbeat")
+                #print("A entrar em heartbeat")
                 break
             elif data.split('-')[0] == 'mcast?':
                 print("Servidor a perguntar o endereço multicast:")
                 self.socket.sendto(b'mcastOk', addr)
                 print("Endereço multicast enviado")
-                print("A entrar em heartbeat")
+                #print("A entrar em heartbeat")
                 break
-        game = Game(mcaddr, serverAddr)
+        print
+        game = Game(mcaddr)
         game.start()
-        self.heartbeat()
+        #self.heartbeat()
     
     def heartbeat(self):
         while True:
@@ -62,24 +62,35 @@ class Auth(threading.Thread):
             print("Heartbeat standby")
 
     def run(self):
+        print("Thread de autenticação iniciada")
         self.auth()
     
 
 class Game(threading.Thread):
     def __init__(self,addr):
-        self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM,socket.IPPROTO_UDP)
+        threading.Thread.__init__(self)
         self.port = 8888
         self.buffer = 2048
         self.mcastAddr = addr
         
+        #Create socket, bind to listen to multicast ipv6 group with self.mcastAddr and self.port
+        self.addrInfo = socket.getaddrinfo(self.mcastAddr,None)[0]
+        self.socket = socket.socket(self.addrInfo[0], socket.SOCK_DGRAM)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, True)
+        self.socket.bind(('',self.port))
+        self.mreq = struct.pack("16s15s".encode('utf-8'),socket.inet_pton(socket.AF_INET6,self.mcastAddr),(chr(0)*16).encode('utf-8'))
+        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, self.mreq)
+        print("socket configurado")
+        
+        
+        
         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
         self.controlPort = 8081
-        self.controlSocket.bind('', self.controlPort)
+        self.controlSocket.bind(('', self.controlPort))
         self.options = dict()
         self.filePaths = []
         
-
-
 
     def inGame(self):
         print("A espera de ficheiros de musica")
@@ -147,36 +158,23 @@ class Game(threading.Thread):
     
     
     def run(self):
-        try:
-            self.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)    
-        except Exception as e:
-            print ("Error: %s" % e)
-            pass
-        print("A tentar a subscricao multicast")
-        self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
-        self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)
-
-        self.socket.bind(self.mcastAddr, self.port)
-        host = socket.gethostbyname(socket.gethostname())
-        self.socket(socket.SOL_IP, socket.IP_MULTICAST_IF, socket.inet_aton(host))
-        self.setsockopt(socket.SOL_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(self.mcastAddr) + socket.inet_aton(host))
+        print("Thread de jogo inciada")
         data, addr = self.socket.recvfrom(self.buffer)
+        print("Depois de receber")
         data = data.decode()
         if data.split('-') == 'loading-':
             print("Inicio de jogo recebido")
             self.controlSocket.sendto('gameStartOk'.encode(), (serverAddr, self.controlPort))
             print("Inicio de jogo confirmado")
             self.inGame()
-        
-        
-            
-            
-            
-                
-        
+       
         
         
 def main():
     serverAddr = sys.argv[1]
-    serverPort = int(sys.argv[2])
+    #Start auth thread
+    auth = Auth(serverAddr)
+    auth.start()
     
+if __name__ == '__main__':
+    main()  

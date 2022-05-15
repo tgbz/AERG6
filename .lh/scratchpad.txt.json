@@ -1,0 +1,18 @@
+{
+    "sourceFile": "scratchpad.txt",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1652622316046,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1652622316046,
+            "name": "Commit-0",
+            "content": "\n\"\"\" \nclients : {\n    <client_id> : {\n        port : <port>,\n        ready : <bool>,\n        ingame : <bool>,\n        online : <bool>,\n    },\n    <client_id> : {\n        port : <port>,\n        ready : <bool>,\n        ingame : <bool>,\n        online : <bool>,\n    },\n    ....\n\"\"\""
+        }
+    ]
+}

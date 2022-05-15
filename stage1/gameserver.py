@@ -7,29 +7,18 @@ maxPlayersForGame = 2
 totalReadyPlayers = 0
 maxGameRounds = 3
 
-""" 
-clients : {
-    <client_id> : {
-        port : <port>,
-        ready : <bool>,
-        ingame : <bool>,
-        online : <bool>,
-    },
-    <client_id> : {
-        port : <port>,
-        ready : <bool>,
-        ingame : <bool>,
-        online : <bool>,
-    },
-    ....
-"""
 
 class networkStatusHandler(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.hostName = socket.gethostname()
         self.buffer = 2048
-        self.mcastAddr = "FF01:0:0:0:0:0:0:1"
+        self.mcastAddr = "ff02::abcd:1"
+        self.port = 8080
+        self.hostName = socket.gethostname()
+        self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socket.bind(('', self.port))
    
     #Funcao Utilitaria que adiciona o cliente, utilizando o endereço ipv6 como chave.
     #Caso ele já exista, não faz nada.    
@@ -78,13 +67,8 @@ class networkStatusHandler(threading.Thread):
     
     def run(self):
         global totalReadyPlayers
-        print("Thread de gestao de utilizadores inicialziada")
+        print("networkStatusHandler iniciada")
         #bind the socket para ipv6
-        self.port = 8080
-        self.hostName = socket.gethostname()
-        self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.bind(('', self.port))
         #Incializaçaõ de loop para gestao de users:
         while True:
             data, addr = self.socket.recvfrom(self.buffer)
@@ -101,20 +85,26 @@ class networkStatusHandler(threading.Thread):
             """
             if data.split('-')[0]=="new":
                 print("Nova conexao de " + str(data.split('-')[1]))
-                if self.addClient(addr,addr[1])==1:
+                if self.addClient(addr[0],addr[1])==1:
                     print("Cliente adicionado"  + str(addr))
                     print("Estado actual dos clientes:")
                     print(clients)
                     print("A enviar confirmação para os clientes:")
-                    self.socket.sendto(bytes(("hello-%s-%s"),addr[0],self.mcastAddr),addr)
+                    msg = "hello-" + self.hostName + "-" + self.mcastAddr
+                    print(msg)
+                    self.socket.sendto(msg.encode(),addr)
                     print("Endereço Multicast Enviado")
             elif data.split('-')[0]=="mcast" and data.split('-')[1]=="ok":
+                print(data)
+                print("Estado actual da lista de clientes:")
+                print(clients)
                 #verificar se o cliente já está na lista de clientes
                 if clients[addr[0]] is not None:
                     print("confirmação de recepção de multicast recebida de " + str(addr[0]))
                     print("A atualizar o seu estado para online")
                     self.setClientOnline(addr[0])
-                    self.socket.sendto(bytes(("ready?-%s"),addr[0]),addr)
+                    msg = "ready?-"+ str(addr[0])
+                    self.socket.sendto(msg.encode(), addr)
                 else:
                     print("Cliente não está autenticado... A descartar...")
             elif data.split('-')[0]=="readyOk":
@@ -127,22 +117,24 @@ class networkStatusHandler(threading.Thread):
                 self.removeClient(addr[0])
                             
             
-class hearbeatHandler(threading.Thread):
+class heartbeatHandler(threading.Thread):
     #Funcao que inicializa a thread de heartbeat
     def __init__(self):
         threading.Thread.__init__(self)
-        self.controlPort = 8081
         self.hostName = socket.gethostname()
         self.buffer = 2048
-        
+        self.port = 8081
     #Funcao que envia um heartbeat para todos os clientes
     def sendHeartbeat(self):
         for addr in clients.keys():
             self.socket.sendto(bytes(("heartbeat-%s"),addr),addr)
             print("Heartbeat enviado para " + str(addr))
+        
     #Funcao que recebe um heartbeat de todos os clientes num espaço de 10 segundos, o seu estado é actualizado para online = 0
     def receiveHeartbeat(self):
+        global clients
         while True:
+            
             data, addr = self.socket.recvfrom(self.buffer)
             data = data.decode()
             if data.split('-')[0]=="heartbeat":
@@ -158,7 +150,7 @@ class hearbeatHandler(threading.Thread):
     
     #Funcao que inicializa a thread de heartbeat
     def run(self):
-        print("Thread de heartbeat inicializada")
+        print("heartbeat inicializado")
         #bind the socket para ipv6
         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -166,26 +158,20 @@ class hearbeatHandler(threading.Thread):
         #Incialização de loop para gestao de heartbeat
         while True:
             self.sendHeartbeat()
-            self.receiveHeartbeat()
             time.sleep(10)
     
 
 """
 Thread para gestão do jogo, que inicializa o jogo e o envio das músicas assim como as opções de jogo para todos os clientes via mutlicast.        
 """
-class Game(threading.Thread):
+class game(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.songDB = "songlist.json"
         self.songList = json.load(open(self.songDB))
-        self.mCastSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
-        self.mCastSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.mCastSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-        self.mCastSocket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS,5)
-        self.mCastSocket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP,1)
-        self.mCastSocket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 100)
+        self.mCastSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.mcastPort = 8888
-        self.mcastAddr = "FF02::1"
+        self.mcastAddr = "ff02::abcd:1"
         self.buffer = 2048
         self.controlSocket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
         self.controlPort = 8081
@@ -225,11 +211,14 @@ class Game(threading.Thread):
             O número de opções é sempre 4, e o número de rondas é igual ao maxGameRounds passado como argumento.
     """
     def getOptions(self,options,maxGameRounds):
+        print("options: " + str(options))
+        print("maxGameRounds: " + str(maxGameRounds))
         optionsDict = {}
         for i in range(0,len(options)):
             optionsDict[str(i+1)] = {}
             for j in range(1,5):
-                optionsDict[str(i+1)][str(j)] = self.songList[options[i]]["artist"] + "-" + self.songList[options[i]]["song"]
+                optionsDict[str(i+1)][str(j)] = self.songList[options[i]]["artist"] + "-" + self.songList[options[i]]["title"]
+        print(optionsDict)
         return optionsDict
      
     #Função respnsável por popular o dicionário de currentGamePlayers com os ids dos clientes com estado ready até um máximo de totalReadyPlayers
@@ -248,8 +237,10 @@ class Game(threading.Thread):
     def multiSender(self,file,flag):
         sen = Sender.Sender(self.mcastAddr,self.mcastPort,file,flag,self.mCastSocket)
         sen.start()
+        sen.join()
        
     def controlMCast(self,controlString):
+        print("A espera de confirmacoes...")
         controlCounter = 0
         while controlCounter < len(self.currentGamePlayers):
             data, addr = self.controlSocket.recvfrom(self.buffer)
@@ -347,15 +338,16 @@ class Game(threading.Thread):
     def generateGame(self):
         global totalReadyPlayers
         global clients
-        self.getReadyPlayers()
         self.currentGamePlayers = self.getReadyPlayers(totalReadyPlayers)
         #Escolher <maxGameRounds> músicas aleatórias da base de dados para o jogo
         selectedSongs = self.chooseSongs()
         gameOptions = self.getOptions(selectedSongs,maxGameRounds)
         controlCounter = 0
         filepaths = []
-        filepaths = [self.songList[song]["filepath"] for song in selectedSongs]
+        filepaths = [self.songList[song]["filePath"] for song in selectedSongs]
+        print("filepaths")
         self.multiSender("loading-",2)
+        self.controlMCast("gameStartOk")
         for i in range(0,len(filepaths)):
             self.multiSender(filepaths[i],0)
             self.controlMCast("songOk")
@@ -381,17 +373,20 @@ class Game(threading.Thread):
                 self.clients[player]["ready"] = False
         self.currentGamePlayers = []
     def run(self):
+        while totalReadyPlayers < maxPlayersForGame:
+            time.sleep(0.1)
+        print("game Thread incializada")
         self.generateGame()
 
 
 def main():
     #Inicializar as threads networkStatusHandler, heartbeatHandler e Game
-    networkStatusHandler = networkStatusHandler()
-    heartbeatHandler = heartbeatHandler()
-    gameHandler = Game()
-    networkStatusHandler.start()
-    heartbeatHandler.start()
-    gameHandler.start()
+    net = networkStatusHandler()
+    #heart = heartbeatHandler()
+    gamet = game()
+    net.start()
+    #heart.start()
+    gamet.start()
 
 if __name__ == "__main__":
     main()

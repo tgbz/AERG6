@@ -1,4 +1,4 @@
-import socket, time, threading,json
+import socket, time, threading,json, struct
 
 
 
@@ -9,15 +9,19 @@ class Sender(threading.Thread):
         self.port = port
         self.file = file
         self.s = socket
-        self.f = open(file, 'rb')
         self.buffer = 2048
         self.type = flag # 0 for song, 1 for options, 2 for strings
         
     def run(self):
-        self.s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
-        self.s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)
-        self.s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, 1)
+        print("Flag recebida: ", self.type)
+        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.s.bind(('', self.port))
+        self.s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, True)
+        mreq = struct.pack("16s15s".encode('utf-8'),socket.inet_pton(socket.AF_INET6,self.ip),(chr(0)*16).encode('utf-8'))
+        self.s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, mreq)
+        
         if self.type == 0:
+            self.f = open(self.file, 'rb')
             data = self.f.read(self.buffer)
             print("Ficheiro lido no Sender")
             while(data):
@@ -42,10 +46,8 @@ class Sender(threading.Thread):
         elif self.type == 2:
             data = self.file
             print("A enviar strings")
-            while(data):
-                print("A tentar enviar")
-                self.s.sendto(data,(self.ip,self.port))
-                time.sleep(0.05)
-                print("ficheiro enviado")
+            print("A tentar enviar")
+            self.s.sendto(data.encode(),(self.ip,self.port))
+            time.sleep(0.05)
             print("String % s enviada em multicast" % self.file)
         
