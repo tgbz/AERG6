@@ -1,0 +1,30 @@
+{
+    "sourceFile": "final/tests/mSender.py",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 3,
+            "patches": [
+                {
+                    "date": 1654521379633,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1654521526679,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,9 +1,13 @@\n from datetime import datetime\r\n-import socket\r\n+import socket, time\r\n import struct\r\n \r\n sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n \r\n sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, True)\r\n \r\n\\ No newline at end of file\n-sock.sendto(\"Hello\".encode(), (\"ff02::abcd:1\", 8080))\n+\r\n+while True:\r\n+\r\n+    sock.sendto(\"Hello\".encode(), (\"ff02::abcd:1\", 8080))\r\n+    time.sleep(1)\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1654521560028,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -9,5 +9,7 @@\n \r\n while True:\r\n \r\n     sock.sendto(\"Hello\".encode(), (\"ff02::abcd:1\", 8080))\r\n-    time.sleep(1)\n\\ No newline at end of file\n+    \r\n+    print(\"message Sent\")\r\n+    time.sleep(.5)\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1654521739604,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -8,8 +8,7 @@\n \r\n \r\n while True:\r\n \r\n-    sock.sendto(\"Hello\".encode(), (\"ff02::abcd:1\", 8080))\r\n-    \r\n+    sock.sendto(\"hello world\".encode('utf-8'), (\"ff02::abcd:1\", 8080))\r\n     print(\"message Sent\")\r\n     time.sleep(.5)\n\\ No newline at end of file\n"
+                }
+            ],
+            "date": 1654521379633,
+            "name": "Commit-0",
+            "content": "from datetime import datetime\r\nimport socket\r\nimport struct\r\n\r\nsock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n\r\nsock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, True)\r\n\r\nsock.sendto(\"Hello\".encode(), (\"ff02::abcd:1\", 8080))"
+        }
+    ]
+}
