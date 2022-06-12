@@ -1,0 +1,38 @@
+{
+        "1":
+        {
+            "title": "Another Brick In The Wall",
+            "artist": "Pink Floyd",
+            "filePath": "../common/songs/Pink Floyd-Another Brick In The Wall.wav"
+        },
+        "2":
+        {
+            "title": "Don't Start Now",
+            "artist": "Dua Lipa",
+            "filePath": "../common/songs/Dua Lipa-Don't Start Now.wav"
+        },
+        "3":
+        {
+            "title": "Sex Machine",
+            "artist": "James Brown",
+            "filePath": "../common/songs/James Brown-Sex Machine.wav"
+        },
+        "4":
+        {
+            "title": "Uptown Funk",
+            "artist": "Bruno Mars",
+            "filePath": "../common/songs/Bruno Mars-Uptown Funk.wav"
+        },
+        "5":
+        {
+            "title": "Thriller",
+            "artist": "Michael Jackson",
+            "filePath": "../common/songs/Michael Jackson-Thriller.wav"
+        },
+        "6":
+        {
+            "title": "Walking On A Dream",
+            "artist": "Empire of the Sun",
+            "filePath": "../common/songs/Empire Of The Sun-Walking On A Dream.wav"
+        }
+}
