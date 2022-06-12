@@ -13,7 +13,7 @@ class gameClient():
         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.buff = 4096
-        self.clientPort = 8081
+        self.clientPort = 8080
         self.gamePort = 0
         self.hostName = socket.gethostname()
         self.gameMenu = ""
@@ -40,6 +40,7 @@ class gameClient():
                     self.socket.bind(('', self.gamePort))
                     print(self.gamePort)
                     self.gameQueue()
+                    break
             except socket.timeout:
                 print("Timeout")
             
@@ -71,24 +72,28 @@ class gameClient():
         self.findPaths()
         print("in gameMenu")
         self.results = "results-"
-    
         for i in range(len(self.opts)):
             men = []
+            tmp = []
             for j in range(len(self.opts[i])):
+                tmp.append(self.opts[i][j])
                 tp = str(j) + " : " + self.songList[self.opts[i][j]]["title"] + " - " + self.songList[self.opts[i][j]]["artist"]
                 men.append(tp)
+            
             p = Process(name="playsound", target=playMusic, args=(self.paths[i],))
             p.start()
             pprint.pprint(men)
             startTime = time.time()
             choice = input("Escolha uma opção: ")
+            f = tmp[int(choice)]
+            print(f)
+            print("\n\n\n\n\n")
             endTime = time.time()
             p.terminate()
             print("\x1b[2J\x1b[H",end="")
             finalTime = endTime - startTime
-            self.results += "r" + str(i) + "-@" + str(finalTime) + "#" + choice + "-"
+            self.results += "r" + str(i) + "-@" + str(finalTime) + "#" + str(f) + "-"
         print(self.results)
-        self.sendResults()
     
 
     def gameQueue(self):
@@ -107,33 +112,20 @@ class gameClient():
                 elif msg.split('-')[0] == "go":
                     self.socket.sendto("go-ack".encode(), addr)
                     self.gameOn()
-                    self.sendResults()
+                    self.sR()
+                    self.socket.sendto(self.results.encode(), (serverAddr, self.gamePort))
+                    print("Resultados enviados")
                 elif msg.split('-')[0] == "final":
                     self.socket.sendto("final-ack".encode(), addr)
+                    print(msg.split('-')[1])
                     break
             except socket.timeout:
-                print("Timeout")
-
-    def sendResults(self):
-        self.sR()
-        while True:
-            print("a enviar resultados...")
-            try:
-                self.socket.sendto(self.results.encode(), (serverAddr, self.gamePort))
-                data, addr = self.socket.recvfrom(self.buff)
-                if data.decode() == "results-ack":
-                    print("Resultados enviados")
-                    break
-            except socket.timeout:
-                print("Timeout")
-        self.waitForWinner()
-     
+                print("Timeout")          
      
     def sR(self):
         res = self.results.replace("results", "")
         res = res[:-1]
         res = re.split(r'-r[0-9]-', res)
-        print("res split " + str(res))
         times = []
         opt = []
         for i in range(1, len(res)):
@@ -150,23 +142,24 @@ class gameClient():
         for i in range(len(times)):
             timeSum += float(times[i])
         self.results = "results-" + str(nCorrectas) + "-" + str(timeSum)
-        
-        
-    def waitForWinner(self):
-        print("A espera resultados finais")
+
+    def disconnect(self):
+        input("GG WP, prima para sair")
+        print("\x1b[2J\x1b[H",end="")
         while True:
-            data, addr = self.socket.recvfrom(self.buff)
-            if data.decode('-')[0] == "final":
-                print("Recebido resultados finais")
-                print(data.decode())
+            self.aSocket.sendto(("disconnect-" + self.hostName).encode(), (serverAddr, self.clientPort))
+            data, addr = self.aSocket.recvfrom(self.buff)
+            if data.decode() == "disconnect-ack":
+
                 break
-        print("Fim do jogo...")
+
         
 def main():
     global serverAddr
     serverAddr = sys.argv[1]
     client = gameClient()
     client.auth()
+    client.disconnect()
     
 if __name__ == "__main__":
     main()

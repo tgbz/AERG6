@@ -12,12 +12,12 @@ gameData = dict() #dicionario de dados do jogo
 class ClientManager(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-        self.port = 8081
+        self.port = 8080
         self.socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind(('', self.port))
         self.buffer = 2048
-        self.gamePort = 8080
+        self.gamePort = 8081
         self.hostname = socket.gethostname()
 
     def addClient(self, hostname, addr, port):
@@ -41,8 +41,7 @@ class ClientManager(threading.Thread):
         global conClients, nClients, routingTable
         if hostname in conClients.keys():
             conClients.pop(hostname)
-            routingTable.pop(hostname)
-            nClients -= 1
+            #routingTable.pop(hostname)
             print("Client " + hostname + " removed")
             return 1
         else:
@@ -51,8 +50,9 @@ class ClientManager(threading.Thread):
     #hello-hostname-actualAddr    
     def run(self):
         global conClients, nClients
-        print("À espera de clientes...")
         while True:
+            print("waiting for new clients..")
+            print(nClients)
             data, addr = self.socket.recvfrom(self.buffer)
             msg = data.decode().split('-')
             if msg[0] == "hello":
@@ -84,28 +84,31 @@ class GameManager():
                 conClients[client]["status"] = 2
                 self.gameClients[client] = conClients[client]
         print("Selected Clients for game: ")
+        print(self.gameClients)
     
     def run(self):
-        global nClients
+        global nClients, conClients
         print("À espera de jogos....")
         while True:
             while nClients < self.gameSize:
                 time.sleep(0.1)
+            print("connClients..")
+            print(conClients)
+            #input("wait")
             print("jogo a iniciar...\n\n\n")
             self.selectClientsForGame()
             gm = GameLobby(self.gameSize, self.rounds, self.gameClients)
             gm.start()
+            self.gameClients = dict()
             nClients = 0
 
 class GameLobby(threading.Thread):
     def __init__(self, gameSize, rounds, gameClients):
         threading.Thread.__init__(self)
-        self.port = 8080
         self.rounds = rounds
         self.gameSize = gameSize
         self.gameClients = gameClients
         self.gameData = dict()
-        self.buffer = 4096
         self.gameClients = gameClients
         self.threadPool = []
         self.gameData = dict()
@@ -136,6 +139,8 @@ class GameLobby(threading.Thread):
         #wait for all the threads to finish
         for thread in self.threadPool:
             thread.join()
+        
+        print("all players ended the game")
             
 class ClientGame(threading.Thread):
     def __init__(self, caddr, cport, gameMenu, gameID, parent):
@@ -194,7 +199,6 @@ class ClientGame(threading.Thread):
                 data, addr = self.socket.recvfrom(self.buffer)
                 if data.decode().split('-')[0] == "results" and addr[0] == self.addr:
                     res = data.decode()
-                    self.socket.sendto("results-ack".encode(), addr)
                     break
             except socket.timeout:
                 print("Timeout")
@@ -206,8 +210,33 @@ class ClientGame(threading.Thread):
             time.sleep(0.1)
         print("Final Results: ")
         pprint.pprint(self.parent.gameData)
-        
-        
+        max = 0
+        min = 1000
+        maxAddr = ""
+        minAddr = ""
+        for addr in self.parent.gameData:
+            if float(self.parent.gameData[addr]["nCorrectas"]) > float(max):
+                max = self.parent.gameData[addr]["nCorrectas"]
+                maxAddr = addr
+            if float(self.parent.gameData[addr]["tempo"]) < float(min):
+                min = self.parent.gameData[addr]["tempo"]
+                minAddr = addr
+        print("Winner: " + maxAddr + " with " + str(max) + " correct answers")
+        try:
+            while True:
+                if maxAddr == self.addr:
+                    self.socket.sendto("final-Ganhou o  Jogo!!!".encode(), (self.addr, self.port))
+                    data, addr = self.socket.recvfrom(self.buffer)
+                    if data.decode() == "final-ack" and addr[0] == self.addr:
+                        break
+                else:
+                    self.socket.sendto("final-Perdeu o Jogo!!!".encode(), (self.addr, self.port))
+                    data, addr = self.socket.recvfrom(self.buffer)
+                    if data.decode() == "final-ack" and addr[0] == self.addr:
+                        print("game over")
+                        break
+        except socket.timeout:
+            print("Timeout")
         
     
     def run(self):
@@ -217,7 +246,7 @@ class ClientGame(threading.Thread):
         self.sendGo()
         self.waitForEnd()
         self.finalResults()
-        
+
                 
 def main():
     cm = ClientManager()
