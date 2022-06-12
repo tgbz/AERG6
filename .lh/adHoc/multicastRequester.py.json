@@ -1,0 +1,78 @@
+{
+    "sourceFile": "adHoc/multicastRequester.py",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 15,
+            "patches": [
+                {
+                    "date": 1655062366823,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1655062405966,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -10,9 +10,9 @@\n     try: \r\n         while True:\r\n             print(\"A enviar multicast...\")\r\n             msg=\"neighbor-request\"\r\n-            s.socket.sendto(msg.encode(), (mCast, port))\r\n+            s.sendto(msg.encode(), (mCast, port))\r\n             print(\"A espera de receber info...\")\r\n             data, addr = s.recvfrom(4096)\r\n             if data.decode() == \"neighbor-reply\":\r\n                 print(\"Recebido reply de  ... IP: \" + addr[0])\r\n"
+                },
+                {
+                    "date": 1655062431386,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -6,8 +6,9 @@\n     s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)\r\n     s.settimeout(100)\r\n     mCast = 'ff02::1'\r\n     port = 5555\r\n+    s.bind((mCast, port))\r\n     try: \r\n         while True:\r\n             print(\"A enviar multicast...\")\r\n             msg=\"neighbor-request\"\r\n"
+                },
+                {
+                    "date": 1655062438369,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -6,9 +6,9 @@\n     s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)\r\n     s.settimeout(100)\r\n     mCast = 'ff02::1'\r\n     port = 5555\r\n-    s.bind((mCast, port))\r\n+    s.bind(('', port))\r\n     try: \r\n         while True:\r\n             print(\"A enviar multicast...\")\r\n             msg=\"neighbor-request\"\r\n"
+                },
+                {
+                    "date": 1655062478651,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -18,8 +18,9 @@\n             if data.decode() == \"neighbor-reply\":\r\n                 print(\"Recebido reply de  ... IP: \" + addr[0])\r\n             else:\r\n                 print(\"pacote descartado...\")\r\n+            time.sleep(5)\r\n     except Exception as e:\r\n         print(e)\r\n         \r\n                 \r\n"
+                },
+                {
+                    "date": 1655062530064,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -7,12 +7,13 @@\n     s.settimeout(100)\r\n     mCast = 'ff02::1'\r\n     port = 5555\r\n     s.bind(('', port))\r\n+    hostname = socket.gethostname()\r\n     try: \r\n         while True:\r\n             print(\"A enviar multicast...\")\r\n-            msg=\"neighbor-request\"\r\n+            msg=\"neighbor-request-\"\r\n             s.sendto(msg.encode(), (mCast, port))\r\n             print(\"A espera de receber info...\")\r\n             data, addr = s.recvfrom(4096)\r\n             if data.decode() == \"neighbor-reply\":\r\n"
+                },
+                {
+                    "date": 1655062607671,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,14 +11,14 @@\n     hostname = socket.gethostname()\r\n     try: \r\n         while True:\r\n             print(\"A enviar multicast...\")\r\n-            msg=\"neighbor-request-\"\r\n+            msg=\"neighbor-request-\"+hostname\r\n             s.sendto(msg.encode(), (mCast, port))\r\n             print(\"A espera de receber info...\")\r\n             data, addr = s.recvfrom(4096)\r\n-            if data.decode() == \"neighbor-reply\":\r\n-                print(\"Recebido reply de  ... IP: \" + addr[0])\r\n+            if data.decode().split('-')[0] == \"neighbor\" and data.decode().split('-')[2] == \"reply\":\r\n+                print(\"Recebido reply de  ... hostaname: \" + data.decode().split('-')[3])\r\n             else:\r\n                 print(\"pacote descartado...\")\r\n             time.sleep(5)\r\n     except Exception as e:\r\n"
+                },
+                {
+                    "date": 1655062688113,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -12,8 +12,9 @@\n     try: \r\n         while True:\r\n             print(\"A enviar multicast...\")\r\n             msg=\"neighbor-request-\"+hostname\r\n+            print(msg)\r\n             s.sendto(msg.encode(), (mCast, port))\r\n             print(\"A espera de receber info...\")\r\n             data, addr = s.recvfrom(4096)\r\n             if data.decode().split('-')[0] == \"neighbor\" and data.decode().split('-')[2] == \"reply\":\r\n"
+                },
+                {
+                    "date": 1655062699332,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -16,10 +16,10 @@\n             print(msg)\r\n             s.sendto(msg.encode(), (mCast, port))\r\n             print(\"A espera de receber info...\")\r\n             data, addr = s.recvfrom(4096)\r\n-            if data.decode().split('-')[0] == \"neighbor\" and data.decode().split('-')[2] == \"reply\":\r\n-                print(\"Recebido reply de  ... hostaname: \" + data.decode().split('-')[3])\r\n+            if data.decode().split('-')[0] == \"neighbor\" and data.decode().split('-')[1] == \"reply\":\r\n+                print(\"Recebido reply de  ... hostaname: \" + data.decode().split('-')[2])\r\n             else:\r\n                 print(\"pacote descartado...\")\r\n             time.sleep(5)\r\n     except Exception as e:\r\n"
+                },
+                {
+                    "date": 1655062780255,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -20,9 +20,9 @@\n             if data.decode().split('-')[0] == \"neighbor\" and data.decode().split('-')[1] == \"reply\":\r\n                 print(\"Recebido reply de  ... hostaname: \" + data.decode().split('-')[2])\r\n             else:\r\n                 print(\"pacote descartado...\")\r\n-            time.sleep(5)\r\n+            time.sleep(2)\r\n     except Exception as e:\r\n         print(e)\r\n         \r\n                 \r\n"
+                },
+                {
+                    "date": 1655062948078,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -19,9 +19,9 @@\n             data, addr = s.recvfrom(4096)\r\n             if data.decode().split('-')[0] == \"neighbor\" and data.decode().split('-')[1] == \"reply\":\r\n                 print(\"Recebido reply de  ... hostaname: \" + data.decode().split('-')[2])\r\n             else:\r\n-                print(\"pacote descartado...\")\r\n+                print(\"PACOTE OUT OF CONTEXT\" + data.decode())\r\n             time.sleep(2)\r\n     except Exception as e:\r\n         print(e)\r\n         \r\n"
+                },
+                {
+                    "date": 1655064045355,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -8,12 +8,13 @@\n     mCast = 'ff02::1'\r\n     port = 5555\r\n     s.bind(('', port))\r\n     hostname = socket.gethostname()\r\n+    counter = 0\r\n     try: \r\n         while True:\r\n             print(\"A enviar multicast...\")\r\n-            msg=\"neighbor-request-\"+hostname\r\n+            msg=\"neighbor-request-\"+hostname+\"-\"+str(counter)\r\n             print(msg)\r\n             s.sendto(msg.encode(), (mCast, port))\r\n             print(\"A espera de receber info...\")\r\n             data, addr = s.recvfrom(4096)\r\n"
+                },
+                {
+                    "date": 1655064061680,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -13,8 +13,9 @@\n     try: \r\n         while True:\r\n             print(\"A enviar multicast...\")\r\n             msg=\"neighbor-request-\"+hostname+\"-\"+str(counter)\r\n+            counter += 1\r\n             print(msg)\r\n             s.sendto(msg.encode(), (mCast, port))\r\n             print(\"A espera de receber info...\")\r\n             data, addr = s.recvfrom(4096)\r\n"
+                },
+                {
+                    "date": 1655066271816,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -3,8 +3,9 @@\n def multicastTester():\r\n     s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n     #set socket to ipv6 multicast mode\r\n     s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)\r\n+    self.sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, False)\r\n     s.settimeout(100)\r\n     mCast = 'ff02::1'\r\n     port = 5555\r\n     s.bind(('', port))\r\n"
+                },
+                {
+                    "date": 1655066281032,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -3,9 +3,9 @@\n def multicastTester():\r\n     s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n     #set socket to ipv6 multicast mode\r\n     s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)\r\n-    self.sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, False)\r\n+    s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, False)\r\n     s.settimeout(100)\r\n     mCast = 'ff02::1'\r\n     port = 5555\r\n     s.bind(('', port))\r\n"
+                },
+                {
+                    "date": 1655067861624,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -2,9 +2,9 @@\n \r\n def multicastTester():\r\n     s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n     #set socket to ipv6 multicast mode\r\n-    s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)\r\n+    s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 100)\r\n     s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, False)\r\n     s.settimeout(100)\r\n     mCast = 'ff02::1'\r\n     port = 5555\r\n"
+                }
+            ],
+            "date": 1655062366823,
+            "name": "Commit-0",
+            "content": "import socket, time, threading\r\n\r\ndef multicastTester():\r\n    s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n    #set socket to ipv6 multicast mode\r\n    s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)\r\n    s.settimeout(100)\r\n    mCast = 'ff02::1'\r\n    port = 5555\r\n    try: \r\n        while True:\r\n            print(\"A enviar multicast...\")\r\n            msg=\"neighbor-request\"\r\n            s.socket.sendto(msg.encode(), (mCast, port))\r\n            print(\"A espera de receber info...\")\r\n            data, addr = s.recvfrom(4096)\r\n            if data.decode() == \"neighbor-reply\":\r\n                print(\"Recebido reply de  ... IP: \" + addr[0])\r\n            else:\r\n                print(\"pacote descartado...\")\r\n    except Exception as e:\r\n        print(e)\r\n        \r\n                \r\ndef main():\r\n    multicastTester()\r\nif __name__ == \"__main__\":\r\n    main()\r\n             "
+        }
+    ]
+}

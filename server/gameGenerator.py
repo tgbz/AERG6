@@ -33,7 +33,6 @@ class gameGenerator():
         for i in range(self.gameRounds):
             #select random item from songsAvailable[i]
             self.gameOptions += "%" + str(songsAvailable[i][random.randint(0,3)])
-        print(self.gameOptions)
         return self.gameOptions
     
 

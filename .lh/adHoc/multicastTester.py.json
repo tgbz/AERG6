@@ -1,0 +1,78 @@
+{
+    "sourceFile": "adHoc/multicastTester.py",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 15,
+            "patches": [
+                {
+                    "date": 1655061447404,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1655061463642,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,3 +1,4 @@\n import socket, ppprint, time, threading\r\n \r\n def multicastTester():\r\n+    s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655061473169,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,4 +1,5 @@\n import socket, ppprint, time, threading\r\n \r\n def multicastTester():\r\n-    s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\n\\ No newline at end of file\n+    s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n+    s.bind(('', 9000))\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655061494248,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,5 +1,8 @@\n import socket, ppprint, time, threading\r\n \r\n def multicastTester():\r\n     s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n-    s.bind(('', 9000))\n\\ No newline at end of file\n+    s.bind(('', 9000))\r\n+    mAddr = \"ff02::2\"\r\n+    while True:\r\n+        s.sendto()\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655061510557,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -4,5 +4,5 @@\n     s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n     s.bind(('', 9000))\r\n     mAddr = \"ff02::2\"\r\n     while True:\r\n-        s.sendto()\n\\ No newline at end of file\n+        s.sendto(\"whoIsThere\".encode(), (mAddr, 9000))\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655061517892,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -4,5 +4,6 @@\n     s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n     s.bind(('', 9000))\r\n     mAddr = \"ff02::2\"\r\n     while True:\r\n-        s.sendto(\"whoIsThere\".encode(), (mAddr, 9000))\n\\ No newline at end of file\n+        s.sendto(\"whoIsThere\".encode(), (mAddr, 9000))\r\n+        data, addr = s.recvfrom(4096)\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655061527014,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -5,5 +5,6 @@\n     s.bind(('', 9000))\r\n     mAddr = \"ff02::2\"\r\n     while True:\r\n         s.sendto(\"whoIsThere\".encode(), (mAddr, 9000))\r\n-        data, addr = s.recvfrom(4096)\n\\ No newline at end of file\n+        data, addr = s.recvfrom(4096)\r\n+        pprint.pprint(data.decode())\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655061536489,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -6,5 +6,6 @@\n     mAddr = \"ff02::2\"\r\n     while True:\r\n         s.sendto(\"whoIsThere\".encode(), (mAddr, 9000))\r\n         data, addr = s.recvfrom(4096)\r\n-        pprint.pprint(data.decode())\n\\ No newline at end of file\n+            pprint.pprint(data.decode())\r\n+        \n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655061565262,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -6,6 +6,6 @@\n     mAddr = \"ff02::2\"\r\n     while True:\r\n         s.sendto(\"whoIsThere\".encode(), (mAddr, 9000))\r\n         data, addr = s.recvfrom(4096)\r\n-            pprint.pprint(data.decode())\r\n+            print(data.decode())\r\n         \n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655061572298,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,11 +1,11 @@\n-import socket, ppprint, time, threading\r\n+import socket, time, threading\r\n \r\n def multicastTester():\r\n     s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n     s.bind(('', 9000))\r\n     mAddr = \"ff02::2\"\r\n     while True:\r\n         s.sendto(\"whoIsThere\".encode(), (mAddr, 9000))\r\n         data, addr = s.recvfrom(4096)\r\n-            print(data.decode())\r\n+        print(data.decode())\r\n         \n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655061625011,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -5,7 +5,8 @@\n     s.bind(('', 9000))\r\n     mAddr = \"ff02::2\"\r\n     while True:\r\n         s.sendto(\"whoIsThere\".encode(), (mAddr, 9000))\r\n-        data, addr = s.recvfrom(4096)\r\n-        print(data.decode())\r\n-        \n\\ No newline at end of file\n+        while True:\r\n+            data, addr = s.recvfrom(4096)\r\n+            print(data.decode())\r\n+        time.sleep(0.5)\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655061926142,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -4,9 +4,8 @@\n     s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n     s.bind(('', 9000))\r\n     mAddr = \"ff02::2\"\r\n     while True:\r\n-        s.sendto(\"whoIsThere\".encode(), (mAddr, 9000))\r\n-        while True:\r\n-            data, addr = s.recvfrom(4096)\r\n-            print(data.decode())\r\n-        time.sleep(0.5)\n\\ No newline at end of file\n+        data, addr = s.recvfrom(4096)\r\n+        data = data.decode()\r\n+        print(\"Recebido de \" + addr[0] + \": \" + data)\r\n+        \n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655061958103,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,11 +1,6 @@\n import socket, time, threading\r\n \r\n def multicastTester():\r\n     s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n-    s.bind(('', 9000))\r\n-    mAddr = \"ff02::2\"\r\n-    while True:\r\n-        data, addr = s.recvfrom(4096)\r\n-        data = data.decode()\r\n-        print(\"Recebido de \" + addr[0] + \": \" + data)\r\n-        \n\\ No newline at end of file\n+    #set socket to ipv6 multicast mode\r\n+    s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655061972121,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -2,5 +2,6 @@\n \r\n def multicastTester():\r\n     s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n     #set socket to ipv6 multicast mode\r\n-    s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)\n\\ No newline at end of file\n+    s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)\r\n+    s.settimeout(100)\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655062182005,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -3,5 +3,22 @@\n def multicastTester():\r\n     s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n     #set socket to ipv6 multicast mode\r\n     s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)\r\n-    s.settimeout(100)\n\\ No newline at end of file\n+    s.settimeout(100)\r\n+    mCast = 'ff02::1'\r\n+    port = 5555\r\n+    try: \r\n+        while True:\r\n+            print(\"A enviar multicast...\")\r\n+            msg=\"neighbor-request\"\r\n+            s.socket.sendto(msg.encode(), (mCast, port))\r\n+            print(\"A espera de receber info...\")\r\n+            data, addr = s.recvfrom(4096)\r\n+            if data.decode() == \"neighbor-reply\":\r\n+                print(\"Recebido reply de  ... IP: \" + addr[0])\r\n+            else:\r\n+                print(\"pacote descartado...\")\r\n+    except Exception as e:\r\n+        print(e)\r\n+                \r\n+             \n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655062190024,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -19,6 +19,7 @@\n             else:\r\n                 print(\"pacote descartado...\")\r\n     except Exception as e:\r\n         print(e)\r\n+        \r\n                 \r\n              \n\\ No newline at end of file\n"
+                }
+            ],
+            "date": 1655061447404,
+            "name": "Commit-0",
+            "content": "import socket, ppprint, time, threading\r\n\r\ndef multicastTester():\r\n"
+        }
+    ]
+}

@@ -1,13 +1,10 @@
 import threading, random, pprint, time, socket, gameGenerator, re
 
-
-
 #Variaveis Globais
 nClients = 0 #numero de clientes online
 conClients = dict() #dicionario de clientes
 routingTable = dict() #dicionario de rotas
 gameData = dict() #dicionario de dados do jogo
-
 
 class ClientManager(threading.Thread):
     def __init__(self):
@@ -31,10 +28,10 @@ class ClientManager(threading.Thread):
             }
             routingTable[addr] = addr
             nClients += 1
-            print("Client " + hostname + " added")
+            print("Jogador (" + hostname + ") adicionado")
             return 1
         else:
-            print("Client " + hostname + " already exists")
+            print("Jogador (" + hostname + ") ja existente")
             return 0
 
     def removeClient(self, hostname):
@@ -42,29 +39,28 @@ class ClientManager(threading.Thread):
         if hostname in conClients.keys():
             conClients.pop(hostname)
             #routingTable.pop(hostname)
-            print("Client " + hostname + " removed")
+            print("Jogador (" + hostname + ") removido")
             return 1
         else:
-            print("Client " + hostname + " does not exist")
+            print("Jogador (" + hostname + ") nao existe")
             return 0
     #hello-hostname-actualAddr    
     def run(self):
         global conClients, nClients
         while True:
-            print("waiting for new clients..")
-            print(nClients)
+            print("Servidor a espera de nova conexao")
             data, addr = self.socket.recvfrom(self.buffer)
             msg = data.decode().split('-')
             if msg[0] == "hello":
                 if self.addClient(msg[1], addr[0], addr[1]):
                     self.socket.sendto(("hello-ack-" + str(self.gamePort)).encode(), addr)
-                    print("hello ack sent to " + msg[1])
+                    print("Confirmacao de conexao com " + msg[1])
                 else:
                     self.socket.sendto("You are already connected".encode(), addr)
             elif msg[0] == "disconnect":
                 if self.removeClient(msg[1]):
                     self.socket.sendto("disconnect-ack".encode(), addr)
-                    print("disconnect ack sent to " + msg[1])
+                    print("Termino de conexao com " + msg[1])
                 else:
                     self.socket.sendto("You are not connected".encode(), addr)
 
@@ -83,19 +79,17 @@ class GameManager():
             if conClients[client]["status"] == 1:
                 conClients[client]["status"] = 2
                 self.gameClients[client] = conClients[client]
-        print("Selected Clients for game: ")
-        print(self.gameClients)
+        print("Jogadores selecionados para novo jogo: ")
+        for key in self.gameClients:
+            print("Jogador: "+key+"\t| Addr: "+self.gameClients[key]["addr"]+'\t| Port: '+str(self.gameClients[key]["port"]))
     
     def run(self):
         global nClients, conClients
-        print("À espera de jogos....")
+        print("A espera de Jogadores...")
         while True:
             while nClients < self.gameSize:
                 time.sleep(0.1)
-            print("connClients..")
-            print(conClients)
-            #input("wait")
-            print("jogo a iniciar...\n\n\n")
+            print("Jogo a iniciar...\n\n\n")
             self.selectClientsForGame()
             gm = GameLobby(self.gameSize, self.rounds, self.gameClients)
             gm.start()
@@ -126,11 +120,9 @@ class GameLobby(threading.Thread):
         global gameData
         gg = gameGenerator.gameGenerator(self.rounds)
         gameMenu = gg.getOptionsForSongs()
-        pprint.pprint(self.gameClients)
         gameID = random.randint(0, 10000)
         gameData[gameID] = dict()
         for client in self.gameClients:
-            print("startedThread")
             t = ClientGame(self.gameClients[client]["addr"], self.gameClients[client]["port"], gameMenu, gameID, self)
             self.threadPool.append(t)
         #start all the threads
@@ -140,7 +132,12 @@ class GameLobby(threading.Thread):
         for thread in self.threadPool:
             thread.join()
         
-        print("all players ended the game")
+        print("Resultado final: ")
+        print("|\tAddress\t\t|\tNo Corretas\t|\tTempo")
+        for key in self.gameData:
+            print("|\t"+key+"\t|\t"+str(self.gameData[key]["nCorrectas"]) +"\t|\t"+str(self.gameData[key]["tempo"]))
+
+        print("\nJogo Terminado")
             
 class ClientGame(threading.Thread):
     def __init__(self, caddr, cport, gameMenu, gameID, parent):
@@ -158,28 +155,25 @@ class ClientGame(threading.Thread):
         
     def startGame(self):
         while True:
-            print("trying to send startGame to " + self.addr)
+            print("A iniciar jogo de " + self.addr)
             try:
                 msg = "gameStart"
                 self.socket.sendto(msg.encode(), (self.addr, self.port))
                 data, addr = self.socket.recvfrom(self.buffer)
                 if data.decode() == "gameStart-ack" and addr[0] == self.addr:
-                    print("gameStart-ack received")
                     break
             except socket.timeout:
-                print("timeout")
+                pass
             
     def sendGameMenu(self):
         while True:
-            print("trying to send gameMenu to " + self.addr)
             try:
                 self.socket.sendto(self.gameMenu.encode(), (self.addr, self.port))
                 data, addr = self.socket.recvfrom(self.buffer)
                 if data.decode() == "gameMenu-ack" and addr[0] == self.addr:
-                    print("gameMenu-ack received")
                     break
             except socket.timeout:
-                print("Timeout")
+                pass
     
     def sendGo(self):
         while True:
@@ -188,28 +182,27 @@ class ClientGame(threading.Thread):
                 self.socket.sendto(msg.encode(), (self.addr, self.port))
                 data, addr = self.socket.recvfrom(self.buffer)
                 if data.decode() == "go-ack" and addr[0] == self.addr:
-                    print("go-ack received")
                     break
             except socket.timeout:
-                print("Timeout")
+                pass
     #results-r<id>-@tempo#escolha-r<id>-@tempo#escolha-
     def waitForEnd(self):
         while True:
             try:
                 data, addr = self.socket.recvfrom(self.buffer)
                 if data.decode().split('-')[0] == "results" and addr[0] == self.addr:
+                    print("Resultados de " + self.addr + " recebidos")
                     res = data.decode()
                     break
             except socket.timeout:
-                print("Timeout")
+                pass
         with self.parent.lock:
             self.parent.updateGameData(self.addr, res.split('-')[1], res.split('-')[2])
     
     def finalResults(self):
         while self.parent.gameDone < self.parent.gameSize:
             time.sleep(0.1)
-        print("Final Results: ")
-        pprint.pprint(self.parent.gameData)
+
         max = 0
         min = 1000
         maxAddr = ""
@@ -221,9 +214,10 @@ class ClientGame(threading.Thread):
             if float(self.parent.gameData[addr]["tempo"]) < float(min):
                 min = self.parent.gameData[addr]["tempo"]
                 minAddr = addr
-        print("Winner: " + maxAddr + " with " + str(max) + " correct answers")
-        try:
-            while True:
+        print("Vencedor: " + maxAddr + " com " + str(max) + " resposta corretas")
+        
+        while True:
+            try:
                 if maxAddr == self.addr:
                     self.socket.sendto("final-Ganhou o  Jogo!!!".encode(), (self.addr, self.port))
                     data, addr = self.socket.recvfrom(self.buffer)
@@ -235,9 +229,8 @@ class ClientGame(threading.Thread):
                     if data.decode() == "final-ack" and addr[0] == self.addr:
                         print("game over")
                         break
-        except socket.timeout:
-            print("Timeout")
-        
+            except socket.timeout:
+                pass        
     
     def run(self):
         self.socket.settimeout(3)

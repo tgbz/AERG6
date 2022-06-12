@@ -1,0 +1,18 @@
+{
+    "sourceFile": "server/gameGenerator.py",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1655074882219,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1655074882219,
+            "name": "Commit-0",
+            "content": "import threading, json, random, pprint, re\r\n\r\nclass gameGenerator():\r\n    def __init__(self, rounds):\r\n        self.songsDB = \"../common/songlist.json\" #path para o ficheiro de musicas\r\n        self.songList = json.load(open(self.songsDB)) # carrega o ficheiro de musicas\r\n        self.gameRounds = rounds #número de rondas do jogo\r\n        self.gameOptions = \"\"\r\n    def shuffleGame(self, d):\r\n        temp = list(d.values())\r\n        random.shuffle(temp)\r\n        res = dict(zip(d, temp))\r\n        return res\r\n    \r\n    #menu-r1$id$id$id$id-r2$id$id$id$id-r3$id$id$id$id-sols%id\r\n    def getOptionsForSongs(self):\r\n        self.gameOptions += \"menu-\"\r\n        songsAvailable = []\r\n        for i in range(self.gameRounds):\r\n            self.gameOptions += \"r\" + str(i+1)\r\n            tmp = []\r\n            for j in range(4):\r\n                #add 4 random songs to tmp, with no duplicates selected based on thr id of self.songList\r\n                while True:\r\n                    song = random.randint(1, len(self.songList))\r\n                    if song not in tmp:\r\n                        tmp.append(song)\r\n                        break\r\n                self.gameOptions += \"$\" + str(tmp[j])\r\n            songsAvailable.append(tmp)\r\n            self.gameOptions += \"-\"\r\n        self.gameOptions += \"sols-\"\r\n        for i in range(self.gameRounds):\r\n            #select random item from songsAvailable[i]\r\n            self.gameOptions += \"%\" + str(songsAvailable[i][random.randint(0,3)])\r\n        return self.gameOptions\r\n    \r\n\r\n       \r\n    def generateMenu(self):\r\n        rs = self.gameOptions\r\n        opts = []\r\n        solutions = []\r\n        for g in re.findall(r'r\\d((\\$\\d){4})',self.gameOptions):\r\n            opts.append(g[0].split('$')[1:])\r\n        print(opts)\r\n        print(len(opts))\r\n        for sols in re.findall(r'((\\%\\d){'+str(len(opts))+'})',self.gameOptions):\r\n            #print(sols[0].split('%')[1:])\r\n            solutions = sols[0].split('%')[1:]\r\n        print(solutions) \r\ndef main():\r\n    gg = gameGenerator(3)\r\n    gg.getOptionsForSongs()\r\n    gg.generateMenu()\r\n\r\nif __name__ == \"__main__\":\r\n    main()"
+        }
+    ]
+}

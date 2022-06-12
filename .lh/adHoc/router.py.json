@@ -1,0 +1,150 @@
+{
+    "sourceFile": "adHoc/router.py",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 33,
+            "patches": [
+                {
+                    "date": 1655063469775,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1655063511189,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,16 +1,34 @@\n import socket, time, threading\r\n \r\n \r\n \r\n-class commsHandler(threading.Thread):\r\n+class commsManager(threading.Thread):\r\n     def __init__(self):\r\n         threading.Thread.__init__(self)\r\n         s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\r\n         s.settimeout(100)\r\n         port = 5555\r\n         s.bind(('', port))\r\n+\r\n+\r\n+\r\n+\r\n+\r\n+class inHandler(threading.Thread):\r\n+    def __init__(self):\r\n+        threading.Thread.__init__(self)\r\n+        s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\r\n+        s.settimeout(100)\r\n+        port = 5555\r\n+        s.bind(('', port))\r\n         \r\n     \r\n     \r\n+    def run(self):\r\n+        \r\n+        \r\n+    \r\n+    \r\n     \n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655063575212,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -10,14 +10,19 @@\n         s.settimeout(100)\r\n         port = 5555\r\n         s.bind(('', port))\r\n \r\n+    def run(self):\r\n+        iH = inHandler(self, socket)\r\n+        iH.start()\r\n+        oH = outHandler(self, socket)\r\n+        oH.start()\r\n \r\n \r\n \r\n \r\n class inHandler(threading.Thread):\r\n-    def __init__(self):\r\n+    def __init__(self, socket):\r\n         threading.Thread.__init__(self)\r\n         s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\r\n         s.settimeout(100)\r\n"
+                },
+                {
+                    "date": 1655063585414,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -17,10 +17,8 @@\n         oH = outHandler(self, socket)\r\n         oH.start()\r\n \r\n \r\n-\r\n-\r\n class inHandler(threading.Thread):\r\n     def __init__(self, socket):\r\n         threading.Thread.__init__(self)\r\n         s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n@@ -35,5 +33,18 @@\n         \r\n         \r\n     \r\n     \r\n-    \n\\ No newline at end of file\n+    \r\n+class outHandler(threading.Thread):\r\n+    def __init__(self, socket):\r\n+        threading.Thread.__init__(self)\r\n+        s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\r\n+        s.settimeout(100)\r\n+        port = 5555\r\n+        s.bind(('', port))\r\n+        \r\n+    def run(self):\r\n+        while True:\r\n+            msg = input(\"\")\r\n+            s.sendto(msg.encode(), ('\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655063625044,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -9,8 +9,9 @@\n         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\r\n         s.settimeout(100)\r\n         port = 5555\r\n         s.bind(('', port))\r\n+        q = queue.Queue()\r\n \r\n     def run(self):\r\n         iH = inHandler(self, socket)\r\n         iH.start()\r\n@@ -26,16 +27,12 @@\n         s.settimeout(100)\r\n         port = 5555\r\n         s.bind(('', port))\r\n         \r\n-    \r\n-    \r\n     def run(self):\r\n         \r\n-        \r\n+\r\n     \r\n-    \r\n-    \r\n class outHandler(threading.Thread):\r\n     def __init__(self, socket):\r\n         threading.Thread.__init__(self)\r\n         s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n@@ -46,5 +43,5 @@\n         \r\n     def run(self):\r\n         while True:\r\n             msg = input(\"\")\r\n-            s.sendto(msg.encode(), ('\n\\ No newline at end of file\n+            s.sendto(msg.encode(), ('ff02::1', port))\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655063686593,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,5 +1,5 @@\n-import socket, time, threading\r\n+import socket, time, threading, queue\r\n \r\n \r\n \r\n class commsManager(threading.Thread):\r\n"
+                },
+                {
+                    "date": 1655063715191,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -32,15 +32,16 @@\n         \r\n \r\n     \r\n class outHandler(threading.Thread):\r\n-    def __init__(self, socket):\r\n+    def __init__(self, parent, socket):\r\n         threading.Thread.__init__(self)\r\n         s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\r\n         s.settimeout(100)\r\n         port = 5555\r\n         s.bind(('', port))\r\n+        self.parent = parent\r\n         \r\n     def run(self):\r\n         while True:\r\n             msg = input(\"\")\r\n"
+                },
+                {
+                    "date": 1655063732081,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -4,14 +4,14 @@\n \r\n class commsManager(threading.Thread):\r\n     def __init__(self):\r\n         threading.Thread.__init__(self)\r\n-        s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\r\n-        s.settimeout(100)\r\n-        port = 5555\r\n-        s.bind(('', port))\r\n-        q = queue.Queue()\r\n+        self.s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n+        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\r\n+        self.s.settimeout(100)\r\n+        self.port = 5555\r\n+        self.s.bind(('', port))\r\n+        self.q = queue.Queue()\r\n \r\n     def run(self):\r\n         iH = inHandler(self, socket)\r\n         iH.start()\r\n"
+                },
+                {
+                    "date": 1655063737403,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -8,9 +8,9 @@\n         self.s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\r\n         self.s.settimeout(100)\r\n         self.port = 5555\r\n-        self.s.bind(('', port))\r\n+        self.s.bind(('', self.port))\r\n         self.q = queue.Queue()\r\n \r\n     def run(self):\r\n         iH = inHandler(self, socket)\r\n"
+                },
+                {
+                    "date": 1655063749306,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -28,9 +28,9 @@\n         port = 5555\r\n         s.bind(('', port))\r\n         \r\n     def run(self):\r\n-        \r\n+        print(\"l\")\r\n \r\n     \r\n class outHandler(threading.Thread):\r\n     def __init__(self, parent, socket):\r\n"
+                },
+                {
+                    "date": 1655063775892,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -19,30 +19,12 @@\n         oH.start()\r\n \r\n \r\n class inHandler(threading.Thread):\r\n-    def __init__(self, socket):\r\n+    def __init__(self, parent,socket):\r\n         threading.Thread.__init__(self)\r\n-        s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\r\n-        s.settimeout(100)\r\n-        port = 5555\r\n-        s.bind(('', port))\r\n-        \r\n+            self.socket = socket\r\n+            self.packetQueue = parent.q\r\n     def run(self):\r\n         print(\"l\")\r\n \r\n     \r\n-class outHandler(threading.Thread):\r\n-    def __init__(self, parent, socket):\r\n-        threading.Thread.__init__(self)\r\n-        s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\r\n-        s.settimeout(100)\r\n-        port = 5555\r\n-        s.bind(('', port))\r\n-        self.parent = parent\r\n-        \r\n-    def run(self):\r\n\\ No newline at end of file\n-        while True:\r\n-            msg = input(\"\")\r\n-            s.sendto(msg.encode(), ('ff02::1', port))\n"
+                },
+                {
+                    "date": 1655063806855,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -21,10 +21,11 @@\n \r\n class inHandler(threading.Thread):\r\n     def __init__(self, parent,socket):\r\n         threading.Thread.__init__(self)\r\n-            self.socket = socket\r\n-            self.packetQueue = parent.q\r\n+        self.socket = socket\r\n+        self.packetQueue = parent.q\r\n+        self.packetQueue = parent\r\n     def run(self):\r\n         print(\"l\")\r\n \r\n     \r\n"
+                },
+                {
+                    "date": 1655063820046,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -23,9 +23,10 @@\n     def __init__(self, parent,socket):\r\n         threading.Thread.__init__(self)\r\n         self.socket = socket\r\n         self.packetQueue = parent.q\r\n-        self.packetQueue = parent\r\n+        self.parent = parent\r\n+        \r\n     def run(self):\r\n         print(\"l\")\r\n \r\n     \r\n"
+                },
+                {
+                    "date": 1655063866715,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -26,7 +26,10 @@\n         self.packetQueue = parent.q\r\n         self.parent = parent\r\n         \r\n     def run(self):\r\n-        print(\"l\")\r\n+        while True:\r\n+            data, addr = self.socket.recvfrom(4096)\r\n+            #put in parent queue the data\r\n+            self.packetQueue.put((data, addr))\r\n \r\n     \r\n"
+                },
+                {
+                    "date": 1655063873999,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -23,9 +23,8 @@\n     def __init__(self, parent,socket):\r\n         threading.Thread.__init__(self)\r\n         self.socket = socket\r\n         self.packetQueue = parent.q\r\n-        self.parent = parent\r\n         \r\n     def run(self):\r\n         while True:\r\n             data, addr = self.socket.recvfrom(4096)\r\n"
+                },
+                {
+                    "date": 1655063890146,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -14,12 +14,11 @@\n \r\n     def run(self):\r\n         iH = inHandler(self, socket)\r\n         iH.start()\r\n-        oH = outHandler(self, socket)\r\n-        oH.start()\r\n \r\n \r\n+\r\n class inHandler(threading.Thread):\r\n     def __init__(self, parent,socket):\r\n         threading.Thread.__init__(self)\r\n         self.socket = socket\r\n"
+                },
+                {
+                    "date": 1655063908171,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -14,11 +14,15 @@\n \r\n     def run(self):\r\n         iH = inHandler(self, socket)\r\n         iH.start()\r\n+        while True:\r\n+            #print queue items\r\n+            if not self.q.empty():\r\n+                print(self.q.get())\r\n+            time.sleep(1)\r\n \r\n \r\n-\r\n class inHandler(threading.Thread):\r\n     def __init__(self, parent,socket):\r\n         threading.Thread.__init__(self)\r\n         self.socket = socket\r\n"
+                },
+                {
+                    "date": 1655063936890,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -34,4 +34,8 @@\n             #put in parent queue the data\r\n             self.packetQueue.put((data, addr))\r\n \r\n     \r\n+\r\n+def main():\r\n+    cM = commsManager()\r\n+    cM.start()\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655063991246,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -37,5 +37,8 @@\n     \r\n \r\n def main():\r\n     cM = commsManager()\r\n-    cM.start()\n\\ No newline at end of file\n+    cM.start()\r\n+    \r\n+if __name__ == \"__main__\":\r\n+    main()\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655064120015,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -12,9 +12,9 @@\n         self.s.bind(('', self.port))\r\n         self.q = queue.Queue()\r\n \r\n     def run(self):\r\n-        iH = inHandler(self, socket)\r\n+        iH = inHandler(self, self.s)\r\n         iH.start()\r\n         while True:\r\n             #print queue items\r\n             if not self.q.empty():\r\n@@ -31,9 +31,9 @@\n     def run(self):\r\n         while True:\r\n             data, addr = self.socket.recvfrom(4096)\r\n             #put in parent queue the data\r\n-            self.packetQueue.put((data, addr))\r\n+            self.packetQueue.put({'data':data.decode(), 'addr':addr})\r\n \r\n     \r\n \r\n def main():\r\n"
+                },
+                {
+                    "date": 1655064130054,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -31,9 +31,9 @@\n     def run(self):\r\n         while True:\r\n             data, addr = self.socket.recvfrom(4096)\r\n             #put in parent queue the data\r\n-            self.packetQueue.put({'data':data.decode(), 'addr':addr})\r\n+            self.packetQueue.put({'data':data.decode(), 'addr':addr[0], 'port':addr[1]})\r\n \r\n     \r\n \r\n def main():\r\n"
+                },
+                {
+                    "date": 1655064194533,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -33,10 +33,16 @@\n             data, addr = self.socket.recvfrom(4096)\r\n             #put in parent queue the data\r\n             self.packetQueue.put({'data':data.decode(), 'addr':addr[0], 'port':addr[1]})\r\n \r\n-    \r\n \r\n+class outHandler(threading.Thread):\r\n+    def __init__(self, parent, socket):\r\n+        threading.Thread.__init__(self)\r\n+        self.socket = socket\r\n+        self.parent = parent    \r\n+\r\n+\r\n def main():\r\n     cM = commsManager()\r\n     cM.start()\r\n     \r\n"
+                },
+                {
+                    "date": 1655064245150,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -38,9 +38,14 @@\n class outHandler(threading.Thread):\r\n     def __init__(self, parent, socket):\r\n         threading.Thread.__init__(self)\r\n         self.socket = socket\r\n-        self.parent = parent    \r\n+        self.parent = parent.q\r\n+    def run(self):\r\n+        while True:\r\n+            if not self.parent.empty():\r\n+                msg = self.parent.get()\r\n+                self.socket.sendto(msg['data'].encode(), (msg['addr'], msg['port']))    \r\n \r\n \r\n def main():\r\n     cM = commsManager()\r\n"
+                },
+                {
+                    "date": 1655064281269,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -14,8 +14,10 @@\n \r\n     def run(self):\r\n         iH = inHandler(self, self.s)\r\n         iH.start()\r\n+        oH = outHandler(self, self.s)\r\n+        oH.start()\r\n         while True:\r\n             #print queue items\r\n             if not self.q.empty():\r\n                 print(self.q.get())\r\n"
+                },
+                {
+                    "date": 1655064330925,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -16,13 +16,9 @@\n         iH = inHandler(self, self.s)\r\n         iH.start()\r\n         oH = outHandler(self, self.s)\r\n         oH.start()\r\n-        while True:\r\n-            #print queue items\r\n-            if not self.q.empty():\r\n-                print(self.q.get())\r\n-            time.sleep(1)\r\n+      \r\n \r\n \r\n class inHandler(threading.Thread):\r\n     def __init__(self, parent,socket):\r\n@@ -45,8 +41,9 @@\n     def run(self):\r\n         while True:\r\n             if not self.parent.empty():\r\n                 msg = self.parent.get()\r\n+                print(self.q.get())\r\n                 self.socket.sendto(msg['data'].encode(), (msg['addr'], msg['port']))    \r\n \r\n \r\n def main():\r\n"
+                },
+                {
+                    "date": 1655064341041,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -41,9 +41,9 @@\n     def run(self):\r\n         while True:\r\n             if not self.parent.empty():\r\n                 msg = self.parent.get()\r\n-                print(self.q.get())\r\n+                print(msg)\r\n                 self.socket.sendto(msg['data'].encode(), (msg['addr'], msg['port']))    \r\n \r\n \r\n def main():\r\n"
+                },
+                {
+                    "date": 1655064380661,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -42,9 +42,9 @@\n         while True:\r\n             if not self.parent.empty():\r\n                 msg = self.parent.get()\r\n                 print(msg)\r\n-                self.socket.sendto(msg['data'].encode(), (msg['addr'], msg['port']))    \r\n+                self.socket.sendto(\"PUTAS\".encode(), (msg['addr'], msg['port']))    \r\n \r\n \r\n def main():\r\n     cM = commsManager()\r\n"
+                },
+                {
+                    "date": 1655066291134,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -10,8 +10,9 @@\n         self.s.settimeout(100)\r\n         self.port = 5555\r\n         self.s.bind(('', self.port))\r\n         self.q = queue.Queue()\r\n+        self.s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, False)\r\n \r\n     def run(self):\r\n         iH = inHandler(self, self.s)\r\n         iH.start()\r\n"
+                },
+                {
+                    "date": 1655066321055,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,8 +11,9 @@\n         self.port = 5555\r\n         self.s.bind(('', self.port))\r\n         self.q = queue.Queue()\r\n         self.s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, False)\r\n+        self.myGamePacketQueue = queue.Queue()\r\n \r\n     def run(self):\r\n         iH = inHandler(self, self.s)\r\n         iH.start()\r\n"
+                },
+                {
+                    "date": 1655068751991,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -26,14 +26,16 @@\n     def __init__(self, parent,socket):\r\n         threading.Thread.__init__(self)\r\n         self.socket = socket\r\n         self.packetQueue = parent.q\r\n+        self.hostname = socket.gethostname()\r\n         \r\n     def run(self):\r\n         while True:\r\n             data, addr = self.socket.recvfrom(4096)\r\n             #put in parent queue the data\r\n             self.packetQueue.put({'data':data.decode(), 'addr':addr[0], 'port':addr[1]})\r\n+            if \r\n \r\n \r\n class outHandler(threading.Thread):\r\n     def __init__(self, parent, socket):\r\n@@ -47,8 +49,13 @@\n                 print(msg)\r\n                 self.socket.sendto(\"PUTAS\".encode(), (msg['addr'], msg['port']))    \r\n \r\n \r\n+\r\n+\r\n+\r\n+\r\n+\r\n def main():\r\n     cM = commsManager()\r\n     cM.start()\r\n     \r\n"
+                },
+                {
+                    "date": 1655068892681,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -33,9 +33,12 @@\n         while True:\r\n             data, addr = self.socket.recvfrom(4096)\r\n             #put in parent queue the data\r\n             self.packetQueue.put({'data':data.decode(), 'addr':addr[0], 'port':addr[1]})\r\n-            if \r\n+            if data.split('-')[0] == str(self.hostname):\r\n+                print(\"GO GAME\")\r\n+            else:\r\n+                self.packetQueue.put({'data':data.decode(), 'addr':addr[0], 'port':addr[1]})\r\n \r\n \r\n class outHandler(threading.Thread):\r\n     def __init__(self, parent, socket):\r\n"
+                },
+                {
+                    "date": 1655069017473,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -25,27 +25,26 @@\n class inHandler(threading.Thread):\r\n     def __init__(self, parent,socket):\r\n         threading.Thread.__init__(self)\r\n         self.socket = socket\r\n-        self.packetQueue = parent.q\r\n+        self.parent = parent\r\n         self.hostname = socket.gethostname()\r\n         \r\n     def run(self):\r\n         while True:\r\n             data, addr = self.socket.recvfrom(4096)\r\n             #put in parent queue the data\r\n-            self.packetQueue.put({'data':data.decode(), 'addr':addr[0], 'port':addr[1]})\r\n             if data.split('-')[0] == str(self.hostname):\r\n                 print(\"GO GAME\")\r\n             else:\r\n-                self.packetQueue.put({'data':data.decode(), 'addr':addr[0], 'port':addr[1]})\r\n+                self.parent.q.put({'data':data.decode(), 'addr':addr[0], 'port':addr[1]})\r\n \r\n \r\n class outHandler(threading.Thread):\r\n     def __init__(self, parent, socket):\r\n         threading.Thread.__init__(self)\r\n         self.socket = socket\r\n-        self.parent = parent.q\r\n+        self.parent = parent\r\n     def run(self):\r\n         while True:\r\n             if not self.parent.empty():\r\n                 msg = self.parent.get()\r\n"
+                },
+                {
+                    "date": 1655069029723,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -45,10 +45,10 @@\n         self.socket = socket\r\n         self.parent = parent\r\n     def run(self):\r\n         while True:\r\n-            if not self.parent.empty():\r\n-                msg = self.parent.get()\r\n+            if not self.parent.q.empty():\r\n+                msg = self.parent.q.get()\r\n                 print(msg)\r\n                 self.socket.sendto(\"PUTAS\".encode(), (msg['addr'], msg['port']))    \r\n \r\n \r\n"
+                },
+                {
+                    "date": 1655075530987,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -12,8 +12,9 @@\n         self.s.bind(('', self.port))\r\n         self.q = queue.Queue()\r\n         self.s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, False)\r\n         self.myGamePacketQueue = queue.Queue()\r\n+        self.neighboors = {}\r\n \r\n     def run(self):\r\n         iH = inHandler(self, self.s)\r\n         iH.start()\r\n"
+                }
+            ],
+            "date": 1655063469775,
+            "name": "Commit-0",
+            "content": "import socket, time, threading\r\n\r\n\r\n\r\nclass commsHandler(threading.Thread):\r\n    def __init__(self):\r\n        threading.Thread.__init__(self)\r\n        s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\r\n        s.settimeout(100)\r\n        port = 5555\r\n        s.bind(('', port))\r\n        \r\n    \r\n    \r\n    "
+        }
+    ]
+}

@@ -1,0 +1,86 @@
+{
+    "sourceFile": "adHoc/multicastListener.py",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 17,
+            "patches": [
+                {
+                    "date": 1655062230577,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1655062250204,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -0,0 +1,8 @@\n+import socket, time, threading\r\n+\r\n+\r\n+def multicastListener():\r\n+    s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n+    #set socket to ipv6 multicast mode\r\n+    s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)\r\n+    s.settimeout(100) \n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655062260590,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -3,6 +3,7 @@\n \r\n def multicastListener():\r\n     s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n     #set socket to ipv6 multicast mode\r\n-    s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, 1)\r\n+    #set socket reuse address\r\n+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\r\n     s.settimeout(100) \n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655062284811,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -5,5 +5,15 @@\n     s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n     #set socket to ipv6 multicast mode\r\n     #set socket reuse address\r\n     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\r\n-    s.settimeout(100) \n\\ No newline at end of file\n+    s.settimeout(100)\r\n+    port = 5555\r\n+    while True:\r\n+        data, addr = s.recvfrom(4096)\r\n+        if data.decode() == \"neighbor-request\":\r\n+            print(\"Recebido pedido de vizinho ... IP: \" + addr[0])\r\n+            msg = \"neighbor-reply\"\r\n+            s.sendto(msg.encode(), addr)\r\n+        else:\r\n+            print(\"pacote descartado...\")\r\n+            \n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655062356677,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -15,5 +15,11 @@\n             msg = \"neighbor-reply\"\r\n             s.sendto(msg.encode(), addr)\r\n         else:\r\n             print(\"pacote descartado...\")\r\n-            \n\\ No newline at end of file\n+            \r\n+\r\n+def main():\r\n+    multicastListener()\r\n+\r\n+if __name__ == \"__main__\":\r\n+    main()\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1655062442200,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -7,8 +7,9 @@\n     #set socket reuse address\r\n     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\r\n     s.settimeout(100)\r\n     port = 5555\r\n+    s.bind(('', port))\r\n     while True:\r\n         data, addr = s.recvfrom(4096)\r\n         if data.decode() == \"neighbor-request\":\r\n             print(\"Recebido pedido de vizinho ... IP: \" + addr[0])\r\n"
+                },
+                {
+                    "date": 1655062503625,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -8,8 +8,9 @@\n     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\r\n     s.settimeout(100)\r\n     port = 5555\r\n     s.bind(('', port))\r\n+    hostname = socket.gethostname()\r\n     while True:\r\n         data, addr = s.recvfrom(4096)\r\n         if data.decode() == \"neighbor-request\":\r\n             print(\"Recebido pedido de vizinho ... IP: \" + addr[0])\r\n"
+                },
+                {
+                    "date": 1655062517997,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -13,9 +13,9 @@\n     while True:\r\n         data, addr = s.recvfrom(4096)\r\n         if data.decode() == \"neighbor-request\":\r\n             print(\"Recebido pedido de vizinho ... IP: \" + addr[0])\r\n-            msg = \"neighbor-reply\"\r\n+            msg = \"neighbor-reply-\"+hostname\r\n             s.sendto(msg.encode(), addr)\r\n         else:\r\n             print(\"pacote descartado...\")\r\n             \r\n"
+                },
+                {
+                    "date": 1655062636490,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,9 +11,9 @@\n     s.bind(('', port))\r\n     hostname = socket.gethostname()\r\n     while True:\r\n         data, addr = s.recvfrom(4096)\r\n-        if data.decode() == \"neighbor-request\":\r\n+        if data.decode() == \"neighboor-request\":\r\n             print(\"Recebido pedido de vizinho ... IP: \" + addr[0])\r\n             msg = \"neighbor-reply-\"+hostname\r\n             s.sendto(msg.encode(), addr)\r\n         else:\r\n"
+                },
+                {
+                    "date": 1655062671867,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,11 +11,11 @@\n     s.bind(('', port))\r\n     hostname = socket.gethostname()\r\n     while True:\r\n         data, addr = s.recvfrom(4096)\r\n-        if data.decode() == \"neighboor-request\":\r\n+        if data.decode() == \"neighbor-request\":\r\n             print(\"Recebido pedido de vizinho ... IP: \" + addr[0])\r\n-            msg = \"neighbor-reply-\"+hostname\r\n+            msg = \"neighboor-reply-\"+hostname\r\n             s.sendto(msg.encode(), addr)\r\n         else:\r\n             print(\"pacote descartado...\")\r\n             \r\n"
+                },
+                {
+                    "date": 1655062732599,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,11 +11,11 @@\n     s.bind(('', port))\r\n     hostname = socket.gethostname()\r\n     while True:\r\n         data, addr = s.recvfrom(4096)\r\n-        if data.decode() == \"neighbor-request\":\r\n+        if data.decode().split('-')[0] == \"neighbor\":\r\n             print(\"Recebido pedido de vizinho ... IP: \" + addr[0])\r\n-            msg = \"neighboor-reply-\"+hostname\r\n+            msg = \"neighbor-reply-\"+hostname\r\n             s.sendto(msg.encode(), addr)\r\n         else:\r\n             print(\"pacote descartado...\")\r\n             \r\n"
+                },
+                {
+                    "date": 1655062745888,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,10 +11,10 @@\n     s.bind(('', port))\r\n     hostname = socket.gethostname()\r\n     while True:\r\n         data, addr = s.recvfrom(4096)\r\n-        if data.decode().split('-')[0] == \"neighbor\":\r\n-            print(\"Recebido pedido de vizinho ... IP: \" + addr[0])\r\n+        if data.decode().split('-')[0] == \"neighbor\" and data.decode().split('-')[1] == \"reply\":\r\n+            print(\"Recebido pedido de vizinho ... IP: \" + data.decode().split('-')[2])\r\n             msg = \"neighbor-reply-\"+hostname\r\n             s.sendto(msg.encode(), addr)\r\n         else:\r\n             print(\"pacote descartado...\")\r\n"
+                },
+                {
+                    "date": 1655062777256,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,9 +11,9 @@\n     s.bind(('', port))\r\n     hostname = socket.gethostname()\r\n     while True:\r\n         data, addr = s.recvfrom(4096)\r\n-        if data.decode().split('-')[0] == \"neighbor\" and data.decode().split('-')[1] == \"reply\":\r\n+        if data.decode().split('-')[0] == \"neighbor\" and data.decode().split('-')[1] == \"request\":\r\n             print(\"Recebido pedido de vizinho ... IP: \" + data.decode().split('-')[2])\r\n             msg = \"neighbor-reply-\"+hostname\r\n             s.sendto(msg.encode(), addr)\r\n         else:\r\n"
+                },
+                {
+                    "date": 1655062917569,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -16,9 +16,9 @@\n             print(\"Recebido pedido de vizinho ... IP: \" + data.decode().split('-')[2])\r\n             msg = \"neighbor-reply-\"+hostname\r\n             s.sendto(msg.encode(), addr)\r\n         else:\r\n-            print(\"pacote descartado...\")\r\n+            print(\"PACOTE OUT OF CONTEXT\" + data.decode())\r\n             \r\n \r\n def main():\r\n     multicastListener()\r\n"
+                },
+                {
+                    "date": 1655063029325,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -9,11 +9,13 @@\n     s.settimeout(100)\r\n     port = 5555\r\n     s.bind(('', port))\r\n     hostname = socket.gethostname()\r\n+    counter = 0\r\n     while True:\r\n         data, addr = s.recvfrom(4096)\r\n         if data.decode().split('-')[0] == \"neighbor\" and data.decode().split('-')[1] == \"request\":\r\n+            counter += 1\r\n             print(\"Recebido pedido de vizinho ... IP: \" + data.decode().split('-')[2])\r\n             msg = \"neighbor-reply-\"+hostname\r\n             s.sendto(msg.encode(), addr)\r\n         else:\r\n"
+                },
+                {
+                    "date": 1655063040581,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -14,9 +14,9 @@\n     while True:\r\n         data, addr = s.recvfrom(4096)\r\n         if data.decode().split('-')[0] == \"neighbor\" and data.decode().split('-')[1] == \"request\":\r\n             counter += 1\r\n-            print(\"Recebido pedido de vizinho ... IP: \" + data.decode().split('-')[2])\r\n+            print(\"Recebido pedido de vizinho ... IP: \" + data.decode().split('-')[2] + str(counter))\r\n             msg = \"neighbor-reply-\"+hostname\r\n             s.sendto(msg.encode(), addr)\r\n         else:\r\n             print(\"PACOTE OUT OF CONTEXT\" + data.decode())\r\n"
+                },
+                {
+                    "date": 1655063374714,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -19,8 +19,10 @@\n             msg = \"neighbor-reply-\"+hostname\r\n             s.sendto(msg.encode(), addr)\r\n         else:\r\n             print(\"PACOTE OUT OF CONTEXT\" + data.decode())\r\n+\r\n+\r\n             \r\n \r\n def main():\r\n     multicastListener()\r\n"
+                },
+                {
+                    "date": 1655067263146,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -5,8 +5,9 @@\n     s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)\r\n     #set socket to ipv6 multicast mode\r\n     #set socket reuse address\r\n     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\r\n+    \r\n     s.settimeout(100)\r\n     port = 5555\r\n     s.bind(('', port))\r\n     hostname = socket.gethostname()\r\n"
+                }
+            ],
+            "date": 1655062230577,
+            "name": "Commit-0",
+            "content": ""
+        }
+    ]
+}
